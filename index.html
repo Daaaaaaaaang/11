@@ -300,6 +300,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -406,6 +407,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1456,6 +1458,7 @@ initTheme();
           done:      sb.done,      // 완료 상태 유지
           cancelled: sb.cancelled, // 취소 상태 유지
           note:      sb.note !== undefined ? sb.note : dj.note, // 메모 유지
+          region:    sb.region !== undefined && sb.region !== '' ? sb.region : dj.region, // 차대번호 유지
           // 브라우저에서 부품을 추가/수정했으면 그걸 우선 사용
           parts:     (sb.parts && sb.parts.length > dj.parts.length) ? sb.parts : dj.parts,
         };
@@ -1491,6 +1494,7 @@ initTheme();
     renderSchedule();
   }
 })();
+
 
 
 
