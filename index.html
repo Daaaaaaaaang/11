@@ -287,6 +287,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -381,6 +382,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -902,6 +904,13 @@ let JOBS = loadJobs();
 let checkedState = loadChecked();
 
 var LS_PMEMO = 'jungbi_pmemo_' + window._HASH;
+
+function stableMemoKey(ji, pi) {
+  const j = JOBS[ji];
+  if (!j) return `${ji}-${pi}`;
+  const partName = (j.parts && j.parts[pi]) ? j.parts[pi] : pi;
+  return `${j.plate||''}|${j.date||''}|${partName}`;
+}
 function loadPartMemos() {
   try { var s = localStorage.getItem(LS_PMEMO); return s ? JSON.parse(s) : {}; }
   catch(e) { return {}; }
@@ -942,8 +951,13 @@ function jobMatchesSearch(job) {
 }
 
 // ── Checked helpers ───────────────────────────────────────
-function isChecked(ji, pi) { return !!checkedState[`${ji}-${pi}`]; }
-function setChecked(ji, pi, v) { checkedState[`${ji}-${pi}`] = v; saveChecked(); }
+function stableKey(ji, pi) {
+  const j = JOBS[ji];
+  if (!j) return `${ji}-${pi}`;
+  return `${j.plate||''}|${j.date||''}|${j.time||''}|${pi}`;
+}
+function isChecked(ji, pi) { return !!checkedState[stableKey(ji, pi)]; }
+function setChecked(ji, pi, v) { checkedState[stableKey(ji, pi)] = v; saveChecked(); }
 
 // ── Sort ─────────────────────────────────────────────────
 function sortKey(j) {
@@ -1051,7 +1065,7 @@ function renderSchedule() {
       if (job.parts && job.parts.length > 0) {
         const rows = job.parts.map((part,pi) => {
           const chk = isChecked(ji,pi) ? ' checked' : '';
-          const memo = partMemos[`${ji}-${pi}`] || '';
+          const memo = partMemos[stableMemoKey(ji, pi)] || '';
           const hasMemo = memo.length > 0;
           return `<div>
             <div class="part-row${chk}" id="p-${ji}-${pi}">
@@ -1118,7 +1132,7 @@ function updateProgress() {
 function togglePartMemo(ji, pi) {
   const wrap = document.getElementById(`pmw-${ji}-${pi}`);
   if (!wrap) return;
-  const memo = partMemos[`${ji}-${pi}`] || '';
+  const memo = partMemos[stableMemoKey(ji, pi)] || '';
   if (memo) {
     // 메모 있으면 편집 모드로 전환
     editPartMemo(ji, pi);
@@ -1136,9 +1150,9 @@ function savePartMemo(ji, pi) {
   if (!inp) return;
   const val = inp.value.trim();
   if (val) {
-    partMemos[`${ji}-${pi}`] = val;
+    partMemos[stableMemoKey(ji, pi)] = val;
   } else {
-    delete partMemos[`${ji}-${pi}`];
+    delete partMemos[stableMemoKey(ji, pi)];
   }
   savePartMemos();
   renderSchedule(); // 저장 후 재렌더 → 메모 있으면 always로 항상 표시
@@ -1146,7 +1160,7 @@ function savePartMemo(ji, pi) {
 function editPartMemo(ji, pi) {
   // 메모 텍스트 클릭 → 편집 모드
   const wrap = document.getElementById(`pmw-${ji}-${pi}`);
-  const memo = partMemos[`${ji}-${pi}`] || '';
+  const memo = partMemos[stableMemoKey(ji, pi)] || '';
   wrap.innerHTML = `<input class="part-memo-input" id="pmi-${ji}-${pi}" placeholder="발주 메모 입력..." value="${memo}" onblur="savePartMemo(${ji},${pi})" onkeydown="if(event.key==='Enter')this.blur()">`;
   wrap.classList.add('open');
   setTimeout(() => {
@@ -1387,7 +1401,6 @@ initTheme();
 
       JOBS = merged;
       try { localStorage.setItem(LS_JOBS, JSON.stringify(JOBS)); } catch(e) {}
-      sbSet('jungbi_jobs', JOBS); // 병합 결과를 Supabase에도 저장
       changed = true;
     }
     if (sbChecked && JSON.stringify(sbChecked) !== JSON.stringify(checkedState)) {
@@ -1416,6 +1429,7 @@ initTheme();
     renderSchedule();
   }
 })();
+
 
 
 
