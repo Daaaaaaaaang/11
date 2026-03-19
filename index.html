@@ -32,6 +32,9 @@
   .btn-add:hover{opacity:0.85;}
   .btn-theme{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
   .btn-theme:hover{border-color:var(--accent);}
+  .btn-parts-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
+  .btn-parts-toggle:hover{border-color:var(--accent2);color:var(--accent2);}
+  .btn-parts-toggle.active{background:var(--accent2);border-color:var(--accent2);color:white;}
 
   /* Search */
   .search-wrap{flex:1;max-width:380px;margin:0 10px;position:relative;display:flex;align-items:center;}
@@ -54,6 +57,8 @@
   .filters{display:flex;gap:6px;padding-bottom:18px;flex-wrap:wrap;width:100%;max-width:100%;}
   .filter-btn{font-size:12px;padding:4px 11px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .filter-btn:hover,.filter-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+  .filter-btn.filter-parts.active{background:var(--accent2);border-color:var(--accent2);color:white;}
+  .filter-btn.filter-parts:hover{background:var(--accent2);border-color:var(--accent2);color:white;}
 
   /* Day section */
   .day-section{margin-bottom:24px;width:100%;max-width:100%;overflow:hidden;}
@@ -275,6 +280,11 @@
 
 
 
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -294,6 +304,7 @@
     <div class="stats">
       <span>전체 <b id="totalCount">-</b>건</span>
     </div>
+    <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">🔩 발주부품</button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
     <button class="btn-add" onclick="openModal()">＋ 일정 추가</button>
   </div>
@@ -368,6 +379,11 @@
     </div>
   </div>
 </div>
+
+
+
+
+
 
 
 
@@ -500,15 +516,15 @@ const DEFAULT_JOBS = [
   {date:"3/6",endDate:"",time:"17:00",model:"F55",plate:"103라5351",region:"",title:"엔진오일교환",parts:[],phone:"010 4179 3411",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"10:00",model:"R55",plate:"61저7300",region:"",title:"패드점검후교환,와이퍼교환,오일량체크,차량점검",parts:[],phone:"010-7155-1012",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"10:00",model:"R60sd",plate:"39보0543",region:"",title:"댐퍼세트,측면방향지시등",parts:[],phone:"010-3505-0704",note:"",done:false,cancelled:false},
-  {date:"3/7",endDate:"",time:"10:00",model:"R56s",plate:"04소1642",region:"",title:"자동차검사,엔진오일,차량점검",parts:[],phone:"010 5551 6541",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"10:00",model:"R60d",plate:"54더3081",region:"",title:"자동차검사,진동체크",parts:[],phone:"010 3211 0537",note:"",done:false,cancelled:false},
+  {date:"3/7",endDate:"",time:"10:00",model:"R56s",plate:"04소1642",region:"",title:"자동차검사,엔진오일,차량점검",parts:[],phone:"010 5551 6541",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"11:00",model:"R58",plate:"60라7593",region:"",title:"엔진오일교환, 차량점검",parts:[],phone:"010 8635 2470",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"11:00",model:"F54",plate:"115부8412",region:"",title:"차량전체점검.[내용확인]. - 다음주인줄알았대",parts:[],phone:"010-8120-1336",note:"-저속에서 울컥거림 (냉간시 심함, 열간시에도 약간 있는듯함)",done:true,cancelled:false},
   {date:"3/7",endDate:"",time:"11:00",model:"F55",plate:"57머4326",region:"",title:"엔진오일교환, 차량점검,서비스체크",parts:[],phone:"010 2180 7189",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"13:00",model:"R53",plate:"08거2303",region:"",title:"차량점검[구매한지몇달됨].락볼트교환",parts:[],phone:"010-3648-9839",note:"",done:false,cancelled:false},
-  {date:"3/7",endDate:"3/12",time:"13:00",model:"F55",plate:"31수0350",region:"",title:"히터작동X,점검후누수작업",parts:[],phone:"010-8870-6904",note:"",done:true,cancelled:false},
   {date:"3/7",endDate:"",time:"13:00",model:"F57jcw",plate:"186무2326",region:"",title:"마운트세트3종, 냉각수교환",parts:["마운트세트"],phone:"010 2875 8030",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"13:00",model:"F56",plate:"64너5952",region:"",title:"엔진경고등",parts:[],phone:"010-9097-7952",note:"",done:false,cancelled:false},
+  {date:"3/7",endDate:"3/12",time:"13:00",model:"F55",plate:"31수0350",region:"",title:"히터작동X,점검후누수작업",parts:[],phone:"010-8870-6904",note:"",done:true,cancelled:false},
   {date:"3/7",endDate:"",time:"14:00",model:"R56",plate:"13마8580",region:"",title:"윈드실드커버 좌,우 교환 운전석브러시대 점검후교환",parts:["윈드실드커버"],phone:"010 9530 3928",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"14:00",model:"F54",plate:"265어5539",region:"",title:"엔진오일교환",parts:[],phone:"010 6439 7598",note:"",done:false,cancelled:false},
   {date:"3/7",endDate:"",time:"15:00",model:"F56",plate:"243머9643",region:"",title:"엔진오일교환",parts:[],phone:"010 6308 0008",note:"",done:false,cancelled:false},
@@ -538,8 +554,8 @@ const DEFAULT_JOBS = [
   {date:"3/11",endDate:"",time:"10:00",model:"R56",plate:"13루0717",region:"",title:"().엔진오일,차량점검",parts:[],phone:"010-8886-5695",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"11:00",model:"F55d",plate:"47루9105",region:"",title:"().미션오일",parts:[],phone:"010-9943-4070",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"11:00",model:"F54",plate:"172어4065",region:"",title:"변속기오일알람",parts:[],phone:"010 8262 0383",note:"",done:false,cancelled:false},
-  {date:"3/11",endDate:"3/21",time:"11:00",model:"R60d",plate:"67구1035",region:"",title:"지난주연료필터 교환하고 다음날같은증상으로 시동꺼짐있었슴,주행중 커브진입시 알피엠떨어지면서 조용히 시동꺼짐,3회4회만에 시동걸림,최대엔진출력사용할수없슴 알람들어왔었슴",parts:[],phone:"010 4169 2261",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"3/14",time:"11:00",model:"R60d",plate:"42로2973",region:"",title:"고속도로주행중 갑자기 서행하다가 엑셀밟았을때 차가안나갔다고함",parts:[],phone:"010 8885 5410",note:"",done:false,cancelled:false},
+  {date:"3/11",endDate:"3/21",time:"11:00",model:"R60d",plate:"67구1035",region:"",title:"지난주연료필터 교환하고 다음날같은증상으로 시동꺼짐있었슴,주행중 커브진입시 알피엠떨어지면서 조용히 시동꺼짐,3회4회만에 시동걸림,최대엔진출력사용할수없슴 알람들어왔었슴",parts:[],phone:"010 4169 2261",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"13:00",model:"R60d",plate:"46부9571",region:"",title:"차량점검후엔진오일교환.[브레이크패드&미션오일추가가능성있음]",parts:["브레이크패드"],phone:"010-8317-3130",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"13:00",model:"F55",plate:"47루9288",region:"",title:"엔진오일,람다센서점검,차량점검",parts:[],phone:"010-8888-2498",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"14:00",model:"F54",plate:"19마0227",region:"",title:"운)등속수리,운)상단인터쿨러파이프오링, 엔진오일교환 ,010 6425 7820",parts:["인터쿨러파이프"],phone:"010 5400 6336",note:"",done:false,cancelled:false},
@@ -549,8 +565,8 @@ const DEFAULT_JOBS = [
   {date:"3/11",endDate:"",time:"15:00",model:"F54",plate:"162서2783",region:"",title:"엔진오일교환, 브레이크액알람 점검후교환",parts:["브레이크액"],phone:"010 4142 2673",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"16:00",model:"R55",plate:"29노8784",region:"",title:"엔진경고등체크,오일량체크",parts:[],phone:"010 5646 4326",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"16:00",model:"",plate:"229구2971",region:"",title:"f60...엔진오일,에어컨필터,차량점검",parts:[],phone:"010-3405-5281",note:"",done:false,cancelled:false},
-  {date:"3/11",endDate:"",time:"17:00",model:"",plate:"384루3364",region:"",title:"f56...dct미션오일,차량점검",parts:[],phone:"010-4666-7187",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"17:00",model:"F60",plate:"23거9487",region:"",title:"브레이크액,브레이크소음확인",parts:["브레이크액"],phone:"010-9585-0316",note:"-뒤 패드 25.03 마이스터 교환 , 손님은 뒤 왼쪽 같다 하심",done:true,cancelled:false},
+  {date:"3/11",endDate:"",time:"17:00",model:"",plate:"384루3364",region:"",title:"f56...dct미션오일,차량점검",parts:[],phone:"010-4666-7187",note:"",done:false,cancelled:false},
   {date:"3/11",endDate:"",time:"17:00",model:"F54",plate:"369노6718",region:"",title:"앞패드교환",parts:[],phone:"010-9217-2024",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"10:00",model:"R60",plate:"19조9798",region:"",title:"엔진오일,미션오일,가속시울커거림있슴,차량점검",parts:[],phone:"010-9094-4827",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"10:00",model:"R53",plate:"36어2066",region:"",title:"엔진오일지참교환,차량점검",parts:[],phone:"010 3841 7230",note:"",done:false,cancelled:false},
@@ -558,9 +574,9 @@ const DEFAULT_JOBS = [
   {date:"3/12",endDate:"",time:"11:00",model:"F54",plate:"135오2213",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-8716-6066",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"11:00",model:"F54",plate:"64노5976",region:"",title:"엔진오일, A/C 필터, 차량점검,하체소음,조수석 뒷문 누수",parts:[],phone:"010 9025 8410",note:"첫방문 전체 점검도 포함. 뒷문 누수는 아마 방수 스펀지일것 같음. 도어 트림 탈거해서 확인만 해보면 될듯.",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"13:00",model:"R53",plate:"02어0404",region:"",title:"Fr.안개등제거",parts:[],phone:"010-3006-8199",note:"",done:true,cancelled:false},
-  {date:"3/12",endDate:"",time:"13:00",model:"F56",plate:"37두4046",region:"",title:"브레이크액점검후교환",parts:["브레이크액"],phone:"010-2398-3493",note:"",done:false,cancelled:false},
-  {date:"3/12",endDate:"",time:"13:00",model:"F55",plate:"107머4865",region:"",title:"프론트범퍼하단 스포일러 쇼바한대분지참교환",parts:[],phone:"010 5858 3392",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"13:00",model:"F54",plate:"163다6741",region:"",title:"변속기오일알람, 구동장치알람",parts:[],phone:"010 6627 7375",note:"",done:false,cancelled:false},
+  {date:"3/12",endDate:"",time:"13:00",model:"F55",plate:"107머4865",region:"",title:"프론트범퍼하단 스포일러 쇼바한대분지참교환",parts:[],phone:"010 5858 3392",note:"",done:false,cancelled:false},
+  {date:"3/12",endDate:"",time:"13:00",model:"F56",plate:"37두4046",region:"",title:"브레이크액점검후교환",parts:["브레이크액"],phone:"010-2398-3493",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"14:00",model:"F55",plate:"163라3073",region:"",title:"엔진오일교환",parts:[],phone:"010 5543 0579",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"",time:"14:00",model:"R60",plate:"15고5380",region:"",title:"시동시 후미등알람점검, 패드알람,워셔액점검",parts:[],phone:"010 4898 0246",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"3/14",time:"14:00",model:"F60",plate:"111도6517",region:"",title:"마포.().필터하우징+엔진오일,미션오일",parts:[],phone:"010-3126-1326",note:"",done:true,cancelled:false},
@@ -572,14 +588,14 @@ const DEFAULT_JOBS = [
   {date:"3/12",endDate:"",time:"17:00",model:"F56",plate:"러5209",region:"",title:"360 엔진오일교환, 차량점검",parts:[],phone:"010 8899 7497",note:"",done:false,cancelled:false},
   {date:"3/12",endDate:"3/20",time:"종일",model:"R53",plate:"",region:"",title:"전은희 앞 부싱 작업 및 클러치 재작업",parts:["앞 부싱", "클러치"],phone:"",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"10:00",model:"F60",plate:"33두1422",region:"",title:"().엔진오일,브레이크액,차량점검",parts:["브레이크액"],phone:"010-4440-9097",note:"",done:false,cancelled:false},
-  {date:"3/13",endDate:"",time:"10:00",model:"F55",plate:"148거6611",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-5487-5854",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"10:00",model:"F55",plate:"384루1738",region:"",title:"프론트쇼바 좌,우,타이밍커버,터보오일공급파이프,워셔액펌프",parts:["타이밍커버"],phone:"010 8982 8055",note:"",done:false,cancelled:false},
+  {date:"3/13",endDate:"",time:"10:00",model:"F55",plate:"148거6611",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-5487-5854",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"11:00",model:"F60",plate:"65마3040",region:"",title:"차량점검",parts:[],phone:"010-5749-4742",note:"-리콜로 서비스센터 점검 : 워터펌프 / 발전기브라켓 교환 필요 안내 : 우측 마운트 교환 필요 안내",done:false,cancelled:false},
-  {date:"3/13",endDate:"3/17",time:"11:00",model:"F60d",plate:"368다8941",region:"",title:"예약없이긴급입고, 배터리충전안됨알람,밋션오일교환, TC오일,디프오일, 연료필터교환",parts:[],phone:"010 5500 7964",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"11:00",model:"F60",plate:"26부7365",region:"",title:"브레이크 전구, 하체 소음 점검",parts:[],phone:"010 4127 7734",note:"조수석 앞에서 방지턱 넘을때 딱딱 하는 소리 난다고 함. 차주분은 컨트롤암 예상 (예전 워런티 있을때 운전석은 수리 받았다고 함.) 만약에 컨트롤 암이면 우선 점검후 다시 예약하기로.",done:false,cancelled:false},
-  {date:"3/13",endDate:"",time:"13:00",model:"R56",plate:"",region:"",title:"8354.().차량전체점검",parts:[],phone:"010-7116-6274",note:"",done:true,cancelled:false},
+  {date:"3/13",endDate:"3/17",time:"11:00",model:"F60d",plate:"368다8941",region:"",title:"예약없이긴급입고, 배터리충전안됨알람,밋션오일교환, TC오일,디프오일, 연료필터교환",parts:[],phone:"010 5500 7964",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"13:00",model:"R60d",plate:"33저0964",region:"",title:"엔진오일교환, 배터리점검후 교환, 배압체크",parts:[],phone:"010 4569 0775",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"13:00",model:"F54",plate:"15보4674",region:"",title:"배터리점검후교환",parts:[],phone:"010-5298-6436",note:"",done:false,cancelled:false},
+  {date:"3/13",endDate:"",time:"13:00",model:"R56",plate:"",region:"",title:"8354.().차량전체점검",parts:[],phone:"010-7116-6274",note:"",done:true,cancelled:false},
   {date:"3/13",endDate:"",time:"14:00",model:"R52",plate:"112머2464",region:"",title:"엔진경고등,냉각수온도체크",parts:[],phone:"010-2682-8269",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"14:00",model:"E90",plate:"45오7552",region:"",title:"파워석션,고압호스 와셔",parts:[],phone:"010 7192 5021",note:"",done:false,cancelled:false},
   {date:"3/13",endDate:"",time:"14:00",model:"F55",plate:"170가9052",region:"",title:"().DCT미션오일.스케줄관계로취소",parts:[],phone:"010-4727-2957",note:"",done:true,cancelled:true},
@@ -624,12 +640,12 @@ const DEFAULT_JOBS = [
   {date:"3/16",endDate:"",time:"15:00",model:"U25",plate:"372노8277",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-3343-5233",note:"",done:false,cancelled:false},
   {date:"3/16",endDate:"",time:"16:00",model:"R58",plate:"69우7185",region:"",title:"엔진오일,엔진경고등,차량점검",parts:[],phone:"010-2470-9140",note:"-오일압력 경고등, 엔진출력저하 경고등 간헐적으로 있었다 함",done:false,cancelled:false},
   {date:"3/16",endDate:"",time:"16:00",model:"F54",plate:"26너5877",region:"",title:"().엔진오일교환,차량점검[내용]",parts:[],phone:"010-7305-0217",note:"-본넷 한쪽 안닫힘 -핸들 소음 심해짐 (스트레칭으로 해결안됐다 하심) -워셔액 점검 : 워셔액 채워져있으나 경고등 들어옴",done:false,cancelled:false},
+  {date:"3/16",endDate:"",time:"17:00",model:"F55",plate:"236수7230",region:"",title:"변속기오일알람, 구동장치이상 .배터리점검후교환",parts:[],phone:"010 3326 6079",note:"",done:false,cancelled:false},
   {date:"3/16",endDate:"",time:"17:00",model:"F56",plate:"312다2478",region:"",title:"미션오일",parts:[],phone:"010-5133-3773",note:"",done:false,cancelled:false},
   {date:"3/16",endDate:"",time:"17:00",model:"R56",plate:"27고1902",region:"",title:"오일량체크,지난번작업체크",parts:[],phone:"010-3039-8464",note:"",done:false,cancelled:false},
-  {date:"3/16",endDate:"",time:"17:00",model:"F55",plate:"236수7230",region:"",title:"변속기오일알람, 구동장치이상 .배터리점검후교환",parts:[],phone:"010 3326 6079",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"",time:"10:00",model:"R60d",plate:"40무5880",region:"",title:"마운트세트3종, 벨트세트,환기파이프,터보인테이크가스켓",parts:["마운트세트", "터보인테이크가스켓", "벨트세트", "환기파이프"],phone:"010 9659 1124",note:"",done:false,cancelled:false},
-  {date:"3/17",endDate:"",time:"10:00",model:"F60",plate:"399조6774",region:"",title:"().엔진오일,차량점검.전구류점검",parts:[],phone:"010-3158-1211",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"",time:"10:00",model:"F54",plate:"01너3863",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-4590-2333",note:"",done:false,cancelled:false},
+  {date:"3/17",endDate:"",time:"10:00",model:"F60",plate:"399조6774",region:"",title:"().엔진오일,차량점검.전구류점검",parts:[],phone:"010-3158-1211",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"3/24",time:"11:00",model:"R55",plate:"60다1352",region:"",title:"냉각수섞임으로 헤드수리,에어컨작동안됨",parts:[],phone:"010 9788 6690",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"",time:"11:00",model:"F56d",plate:"399모1417",region:"",title:"엔진오일지참교환,오일필터만지참,에어컨필터지참, 차량점검",parts:["오일필터"],phone:"010 8098 0569",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"",time:"11:00",model:"F55",plate:"09서0503",region:"",title:"앞 범퍼 운전석 하단 커버쪽 처짐 점검",parts:[],phone:"010 8885 9810",note:"",done:false,cancelled:false},
@@ -647,14 +663,14 @@ const DEFAULT_JOBS = [
   {date:"3/17",endDate:"",time:"16:00",model:"R56",plate:"14너5435",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-4652-8120",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"",time:"17:00",model:"R56",plate:"40조5915",region:"",title:"엔진오일교환, 전구류점검",parts:[],phone:"010 6260 5088",note:"",done:false,cancelled:false},
   {date:"3/17",endDate:"",time:"17:00",model:"R60d",plate:"13소0158",region:"",title:"뒤패드,오일량체크후보충",parts:[],phone:"010-4794-0158",note:"",done:false,cancelled:false},
-  {date:"3/18",endDate:"",time:"10:00",model:"R56",plate:"41노3413",region:"",title:"에어백-벨트텐셔너오류메시지",parts:[],phone:"010-5315-1813",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"10:00",model:"F60",plate:"344무3767",region:"",title:"().DCT미션오일",parts:[],phone:"010-5616-2727",note:"",done:false,cancelled:false},
+  {date:"3/18",endDate:"",time:"10:00",model:"R56",plate:"41노3413",region:"",title:"에어백-벨트텐셔너오류메시지",parts:[],phone:"010-5315-1813",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"10:00",model:"F60",plate:"176모9681",region:"",title:"T/C오일,미션오일",parts:[],phone:"010-9062-4858",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"11:00",model:"F54",plate:"17도1493",region:"",title:"제동시소음점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"11:00",model:"F54",plate:"51너7131",region:"",title:"().서비스체크리셋,차량점검. - 지방갈일생겨서다음에다시예약",parts:[],phone:"010-8369-4488",note:"",done:true,cancelled:false},
   {date:"3/18",endDate:"",time:"13:00",model:"F56",plate:"235거5846",region:"",title:"DCT미션오일,엔진경고등체크.타이어경고등점검",parts:[],phone:"010 3535 4806",note:"",done:false,cancelled:false},
-  {date:"3/18",endDate:"",time:"13:00",model:"F56",plate:"54가4535",region:"",title:"엔진오일,브레이크액점검후교환 차량점검",parts:["브레이크액"],phone:"010-6293-4365",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"13:00",model:"F55",plate:"14루8992",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-9402-3614",note:"",done:false,cancelled:false},
+  {date:"3/18",endDate:"",time:"13:00",model:"F56",plate:"54가4535",region:"",title:"엔진오일,브레이크액점검후교환 차량점검",parts:["브레이크액"],phone:"010-6293-4365",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"14:00",model:"F54",plate:"39구3895",region:"",title:"마운트세트3종, 플러그씰, 코일교환,플러그는지참,정차시 벨트소음처럼들리는데 에어컨작동시 소음안남",parts:["마운트세트", "플러그씰"],phone:"010 7266 1777",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"14:00",model:"F60",plate:"65두3420",region:"",title:"엔진오일만지참교환",parts:[],phone:"010 8601 7079",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"14:00",model:"R55",plate:"29노8784",region:"",title:"견인입고,에어메스센서,스로틀크리닝,견인출고예정",parts:[],phone:"010 5646 4326",note:"",done:false,cancelled:false},
@@ -663,9 +679,10 @@ const DEFAULT_JOBS = [
   {date:"3/18",endDate:"",time:"16:00",model:"R53",plate:"06조6962",region:"",title:"차량점검",parts:[],phone:"010 2907 8117",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"17:00",model:"F55",plate:"06루5895",region:"",title:"구동계이상? 메시지있다하심",parts:[],phone:"010-5327-2146",note:"",done:false,cancelled:false},
   {date:"3/18",endDate:"",time:"16:30",model:"F60",plate:"153조8591",region:"",title:"주행시뒤쪽에서 울리는소음 정차시는 일정하게 웅웅거리는소음이 작게들림",parts:[],phone:"010 2803 1395",note:"",done:false,cancelled:false},
-  {date:"3/19",endDate:"3/21",time:"10:00",model:"R60s",plate:"57도2448",region:"",title:"터보재생교환, 엔진오일교환, 클락션소리안남",parts:["터보재생"],phone:"010 7137 5731",note:"",done:false,cancelled:false},
-  {date:"3/19",endDate:"",time:"10:00",model:"F56",plate:"175버2099",region:"",title:"운)허브베어링 교환",parts:["허브베어링"],phone:"010 8839 4999",note:"",done:false,cancelled:false},
-  {date:"3/19",endDate:"",time:"10:00",model:"F54",plate:"140부9391",region:"",title:"().브레이크액점검후교환,엔진오일교환",parts:["브레이크액"],phone:"010-4197-0407",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"3/21",time:"10:00",model:"R60sd",plate:"57도2448",region:"",title:"터보재생교환, 엔진오일교환,에어컨필터,클락션소리안남",parts:["터보재생"],phone:"010 7137 5731",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"",time:"10:00",model:"F56",plate:"175버2099",region:"",title:"운)허브베어링 교환,타이어위치교환",parts:["허브베어링"],phone:"010 8839 4999",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"",time:"10:00",model:"F54",plate:"140부9391",region:"",title:"().브레이크액점검후교환,엔진오일교환,핸들돌릴때소음",parts:["브레이크액"],phone:"010-4197-0407",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"",time:"10:00",model:"R57",plate:"32너2373",region:"",title:"().점화플러그,코일교환.차량점검",parts:[],phone:"010-9825-5949",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"10:00",model:"F54",plate:"371머1447",region:"",title:"마운트세트.앞패드지참",parts:["마운트세트"],phone:"010-7134-1700",note:"",done:true,cancelled:false},
   {date:"3/19",endDate:"",time:"11:00",model:"F56jcw",plate:"50너6524",region:"",title:"방지턱소음,60키로에서 70키로주행하면 뒤쪽에서 틱틱하는소음들림",parts:[],phone:"010 3226 3528",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"11:00",model:"F60",plate:"258거5647",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-2418-6950",note:"",done:false,cancelled:false},
@@ -673,15 +690,15 @@ const DEFAULT_JOBS = [
   {date:"3/19",endDate:"",time:"13:00",model:"F56",plate:"308부7503",region:"",title:"브레이크액점검후교환",parts:["브레이크액"],phone:"010 3007 1015",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"13:00",model:"R56",plate:"17구6481",region:"",title:"엔진오일교환, 전구류점검",parts:[],phone:"010 4141 1449",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"14:00",model:"F54",plate:"103라5321",region:"",title:"().엔진오일,브레이크액점검후교환,차량점검",parts:["브레이크액"],phone:"010-6262-0665",note:"",done:false,cancelled:false},
-  {date:"3/19",endDate:"",time:"14:00",model:"F54",plate:"123저5330",region:"",title:"브레이크액점검,기본점검",parts:["브레이크액"],phone:"010-7795-8574",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"",time:"14:00",model:"F54",plate:"123저5330",region:"",title:"브레이크액점검,기본점검.간헐적구동장치 알람 벨트소음점검",parts:["브레이크액"],phone:"010-7795-8574",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"15:00",model:"R60s",plate:"59로5015",region:"",title:"앞패드.디스크세트. - 일단 췩소 4월중다시예약",parts:[],phone:"010-7738-3541",note:"",done:true,cancelled:false},
-  {date:"3/19",endDate:"",time:"15:00",model:"F60",plate:"257저9283",region:"",title:"배터리점검후교환",parts:[],phone:"010-5155-5913",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"15:00",model:"F54",plate:"63라4003",region:"",title:"마운트세트,패드1대분지참교환",parts:["마운트세트"],phone:"010-9256-0508",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"",time:"15:00",model:"F60",plate:"257저9283",region:"",title:"배터리점검후교환",parts:[],phone:"010-5155-5913",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"16:00",model:"F54",plate:"41가4326",region:"",title:"패드점검후교환,인터쿨러호스점검",parts:[],phone:"010-8908-1457",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"16:00",model:"U25",plate:"144노6031",region:"",title:"신차엔진오일",parts:[],phone:"010-5333-6359",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"3/21",time:"17:00",model:"F55",plate:"57머4326",region:"",title:"5시 견인입고,마운트세트3종, 타이밍커버,워터펌프어셈블리, 댐퍼풀리세트",parts:["마운트세트", "타이밍커버", "워터펌프어셈블리", "댐퍼풀리세트"],phone:"010 2180 7189",note:"",done:false,cancelled:false},
-  {date:"3/19",endDate:"",time:"17:00",model:"F55",plate:"333주9036",region:"",title:"엔진오일교환, 계기판경고등점검",parts:[],phone:"010 2385 3526",note:"",done:false,cancelled:false},
   {date:"3/19",endDate:"",time:"17:00",model:"F54",plate:"282부5134",region:"",title:"DCT미션오일",parts:[],phone:"010-6226-0801",note:"",done:false,cancelled:false},
+  {date:"3/19",endDate:"",time:"17:00",model:"F55",plate:"333주9036",region:"",title:"엔진오일교환, 계기판경고등점검",parts:[],phone:"010 2385 3526",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"10:00",model:"F54",plate:"13노0453",region:"",title:"구동장치이상,방지턱소음",parts:[],phone:"010 9791 4545",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"10:00",model:"F56",plate:"62우8407",region:"",title:"배터리,차량점검",parts:[],phone:"010-2428-7881",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"10:00",model:"F56",plate:"50누4654",region:"",title:"엔진오일,배터리점검후교환. 스케줄관계로취소",parts:[],phone:"010-8962-5686",note:"",done:true,cancelled:true},
@@ -690,13 +707,13 @@ const DEFAULT_JOBS = [
   {date:"3/20",endDate:"",time:"11:00",model:"F60",plate:"268주2552",region:"",title:"패드점검후교환",parts:[],phone:"010-6210-6419",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"13:00",model:"R59",plate:"183라6263",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-7106-1677",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"13:00",model:"F56",plate:"387주3328",region:"",title:"엔진오일,변속기오일,차량점검",parts:[],phone:"010-7112-1253",note:"",done:false,cancelled:false},
-  {date:"3/20",endDate:"",time:"14:00",model:"R55",plate:"250구3131",region:"",title:"엔진오일교환",parts:[],phone:"010 9988 7873",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"14:00",model:"F60",plate:"251라6133",region:"",title:"변속기오일알람, 구동장치이상",parts:[],phone:"010 6285 2882",note:"",done:false,cancelled:false},
+  {date:"3/20",endDate:"",time:"14:00",model:"R55",plate:"250구3131",region:"",title:"엔진오일교환",parts:[],phone:"010 9988 7873",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"15:00",model:"F55",plate:"58저0979",region:"",title:"엔진마운트단품, 워터펌프어셈블리",parts:["엔진마운트", "워터펌프어셈블리"],phone:"010 7199 7182",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"15:00",model:"F55",plate:"33다5229",region:"",title:"타이밍체인커버교환,누유점검.6",parts:["타이밍체인커버"],phone:"010-9049-2112",note:"-24년 방문시 레벨센서, 터보오일공급파이프쪽 누유 있었음, 25년 12월 방문시 누유 흔적 있었음, (세척 여부 모름) : 세척 필요하면 세척 해둘것",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"15:00",model:"F55",plate:"340너6830",region:"",title:"차량전체점검,댐퍼점검후교환",parts:[],phone:"010-4240-0213",note:"",done:false,cancelled:false},
-  {date:"3/20",endDate:"",time:"16:00",model:"F60",plate:"114저3616",region:"",title:"엔진오일보충,엔진경고등체크",parts:[],phone:"010-8979-4277",note:"-24년 겨울 점검, 엔진경고등 : 스월플랩위치센서 / 워터펌프 스위칭밸브 신호이상 코드 -삭제후 재 점등시 소프트웨어업데이트 부터  안내 했으나, 소프트웨어 업데이트 아직 안함",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"16:00",model:"F56",plate:"66나5067",region:"",title:"엔진오일,패드점검후교환,차량점검",parts:[],phone:"010-3440-7664",note:"",done:false,cancelled:false},
+  {date:"3/20",endDate:"",time:"16:00",model:"F60",plate:"114저3616",region:"",title:"엔진오일보충,엔진경고등체크",parts:[],phone:"010-8979-4277",note:"-24년 겨울 점검, 엔진경고등 : 스월플랩위치센서 / 워터펌프 스위칭밸브 신호이상 코드 -삭제후 재 점등시 소프트웨어업데이트 부터  안내 했으나, 소프트웨어 업데이트 아직 안함",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"17:00",model:"R56s",plate:"23거5905",region:"",title:"누유점검",parts:[],phone:"010 8442 7856",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"17:00",model:"R56d",plate:"68가4450",region:"",title:"전구알람점검",parts:[],phone:"010 7521 0271",note:"",done:false,cancelled:false},
   {date:"3/20",endDate:"",time:"17:00",model:"F60",plate:"148머8982",region:"",title:"엔진경고등체크",parts:[],phone:"010 2566 0388",note:"",done:false,cancelled:false},
@@ -706,16 +723,19 @@ const DEFAULT_JOBS = [
   {date:"3/21",endDate:"",time:"10:00",model:"R53",plate:"04주2614",region:"",title:"자동차검사 검사후 전구점검",parts:[],phone:"010 8902 7738",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"10:00",model:"F56",plate:"105두5432",region:"",title:"전면유리 자차교환",parts:[],phone:"010 9505 9648",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"11:00",model:"F54",plate:"110마8127",region:"",title:"워런티만료전전체점검",parts:[],phone:"010-9078-6642",note:"",done:false,cancelled:false},
-  {date:"3/21",endDate:"",time:"11:00",model:"R60",plate:"321다1670",region:"",title:"().워셔액누수,차량점검",parts:[],phone:"010-3559-0204",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"11:00",model:"F56",plate:"24라6252",region:"",title:"냉각수점검",parts:[],phone:"010-5251-8674",note:"",done:false,cancelled:false},
+  {date:"3/21",endDate:"",time:"11:00",model:"R60",plate:"321다1670",region:"",title:"().워셔액누수,차량점검",parts:[],phone:"010-3559-0204",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"3/25",time:"11:00",model:"F55",plate:"07모8322",region:"",title:"견인입고 누수심함,뒤좌석 벨트결합안됨 브레이크액 알람,브레이크패드 점검",parts:["브레이크액", "브레이크패드"],phone:"010 5101 4443",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"13:00",model:"F55",plate:"11조9098",region:"",title:"마운트세트3종",parts:["마운트세트"],phone:"010 4617 1432",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"13:00",model:"F56",plate:"270도7927",region:"",title:"패드점검후교환,차량점검. -취소",parts:[],phone:"010-9240-8584",note:"",done:true,cancelled:true},
   {date:"3/21",endDate:"",time:"13:00",model:"F54",plate:"271고4730",region:"",title:"엔진오일교환, 브레이크액점검후교환,마운트세트점검후 교환",parts:["마운트세트", "브레이크액"],phone:"010 6231 2891",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"13:00",model:"F56",plate:"64라6951",region:"",title:"에어컨찬바람안나옴",parts:[],phone:"010-8960-7635",note:"",done:false,cancelled:false},
-  {date:"3/21",endDate:"",time:"14:00",model:"R60",plate:"09어0263",region:"",title:"마운트세트3종 차량점검[운행끝나고탄내남]",parts:["마운트세트"],phone:"010-3135-5305",note:"",done:false,cancelled:false},
+  {date:"3/21",endDate:"",time:"14:00",model:"R60",plate:"09어0263",region:"",title:"마운트세트3종 차량점검[운행끝나고탄내남]",parts:["마운트세트"],phone:"010-3135-5305",note:"",done:true,cancelled:false},
   {date:"3/21",endDate:"",time:"14:00",model:"F55",plate:"24서4327",region:"",title:"엔진오일지참교환,전구류점검,차량점검",parts:[],phone:"010-8501-8255",note:"",done:false,cancelled:false},
+  {date:"3/21",endDate:"",time:"14:00",model:"F56",plate:"252나8540",region:"",title:"엔진경고등체크",parts:[],phone:"010 9424 8256",note:"",done:false,cancelled:false},
+  {date:"3/21",endDate:"",time:"14:00",model:"R53",plate:"20머4910",region:"",title:"감독님:차량상담",parts:[],phone:"010-9142-2156",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"15:00",model:"R56",plate:"45머8998",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-8222-8483",note:"",done:false,cancelled:false},
+  {date:"3/21",endDate:"",time:"15:00",model:"F60",plate:"156노9347",region:"",title:"구매점검",parts:[],phone:"010 6641 6133",note:"",done:false,cancelled:false},
   {date:"3/21",endDate:"",time:"15:00",model:"F60",plate:"234어6309",region:"",title:"엔진오일교환, 서비스체크, 컨트리맨레터링",parts:[],phone:"010 4365 3511",note:"",done:false,cancelled:false},
   {date:"3/22",endDate:"3/28",time:"10:00",model:"R53",plate:"52버7438",region:"",title:"차량전체점검-누유작업후출고",parts:[],phone:"010-7118-3730",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"10:00",model:"R56",plate:"32서4576",region:"",title:"벨트세트, 워터펌프, 풀리, 헤드커버가스켓, 프론트크랭크리테이너, 뒤패드점검,엔진경고등,체크",parts:["워터펌프", "벨트세트"],phone:"010 5800 4079",note:"",done:false,cancelled:false},
@@ -728,17 +748,19 @@ const DEFAULT_JOBS = [
   {date:"3/24",endDate:"",time:"14:00",model:"R56",plate:"40서2633",region:"",title:"운전석 안전벨트알람,엔진오일,차량점검",parts:[],phone:"010 4599 4904",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"14:00",model:"F55",plate:"371두1391",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"010-2111-2253",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"15:00",model:"F55",plate:"35나0455",region:"",title:"TPMS조수석뒤,나머지점검후교환. - 취소",parts:[],phone:"010-5824-1004",note:"-슈레더 11만원",done:true,cancelled:true},
+  {date:"3/24",endDate:"",time:"15:00",model:"F55",plate:"285부7503",region:"",title:"().DCT미션오일,패드점검후교환",parts:[],phone:"010-9016-0954",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"15:00",model:"F57",plate:"249노6735",region:"",title:"차량점검,핸들이 무거움",parts:[],phone:"010 9274 5953",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"15:00",model:"F60",plate:"49거6166",region:"",title:"흡기매니폴드어셈블리,인터쿨러파이프 O링 조)하,운)상,엔진오일",parts:["인터쿨러파이프"],phone:"010-8590-9698",note:"",done:false,cancelled:false},
-  {date:"3/24",endDate:"",time:"15:00",model:"F55",plate:"285부7503",region:"",title:"().DCT미션오일,패드점검후교환",parts:[],phone:"010-9016-0954",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"16:00",model:"F55",plate:"102더4062",region:"",title:"차량점검,에어컨필터",parts:[],phone:"010 5914 6852",note:"",done:false,cancelled:false},
   {date:"3/24",endDate:"",time:"16:00",model:"F56",plate:"60버1844",region:"",title:"엔진오일교환, 냉각수점검후교환,차량점검",parts:[],phone:"010 4924 7725",note:"",done:false,cancelled:false},
-  {date:"3/24",endDate:"",time:"17:00",model:"R55",plate:"47머8877",region:"",title:"엔진오일",parts:[],phone:"010-4880-1100",note:"",done:false,cancelled:false},
-  {date:"3/25",endDate:"",time:"10:00",model:"F55",plate:"29러3513",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-9596-9148",note:"",done:false,cancelled:false},
+  {date:"3/24",endDate:"",time:"17:00",model:"F56",plate:"234수5888",region:"",title:"에어컨찬바람이 차갑게 안나옴",parts:[],phone:"010 3222 2600",note:"",done:false,cancelled:false},
+  {date:"3/24",endDate:"",time:"17:00",model:"F57",plate:"176버9578",region:"",title:"구동장치이상,차량점검",parts:[],phone:"010 5723 3862",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"10:00",model:"F55",plate:"22너3852",region:"",title:"엔진오일지참,차량점검",parts:[],phone:"010-4308-0543",note:"",done:false,cancelled:false},
-  {date:"3/25",endDate:"",time:"11:00",model:"F56",plate:"264저5248",region:"",title:"패드점검후교환,차량점검",parts:[],phone:"010-6674-1720",note:"",done:false,cancelled:false},
+  {date:"3/25",endDate:"",time:"10:00",model:"F55",plate:"29러3513",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-9596-9148",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"11:00",model:"F60",plate:"350서6627",region:"",title:"변속기오일알람, 구동장치이상",parts:[],phone:"010 6346 6694",note:"",done:false,cancelled:false},
+  {date:"3/25",endDate:"",time:"11:00",model:"F56",plate:"264저5248",region:"",title:"패드점검후교환,차량점검",parts:[],phone:"010-6674-1720",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"13:00",model:"F54",plate:"246모4713",region:"",title:"구매점검후엔진오일,미션오일",parts:[],phone:"010-2503-7824",note:"",done:false,cancelled:false},
+  {date:"3/25",endDate:"",time:"13:00",model:"F60",plate:"311더5609",region:"",title:"패드점검후교환",parts:[],phone:"010-8904-6616",note:"-오전 입고, 오후 늦게 출고",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"13:00",model:"F55",plate:"21어0998",region:"",title:"워터펌프어셈블리교환,필터하우징점검후교환",parts:["워터펌프어셈블리"],phone:"010-6395-6083",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"14:00",model:"F67s",plate:"269러9405",region:"",title:"신차엔진오일교환",parts:[],phone:"010 5445 5468",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"14:00",model:"F55s",plate:"240저1966",region:"",title:"엔진오일교환, 오일부족알람으로 500미리씩 2번보충했다고함,주차장진입시제동할때그그그극함",parts:[],phone:"010 9388 3491",note:"",done:false,cancelled:false},
@@ -746,10 +768,11 @@ const DEFAULT_JOBS = [
   {date:"3/25",endDate:"",time:"15:00",model:"F60",plate:"191소5908",region:"",title:"배터리점검-교환,차량점검",parts:[],phone:"010-5398-9659",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"16:00",model:"F60",plate:"170너7835",region:"",title:"엔진소음진동,배터리교환",parts:[],phone:"010 3775 7329",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"17:00",model:"F57",plate:"365노6757",region:"",title:"DCT미션오일교환,차량점검",parts:[],phone:"010-2586-0718",note:"",done:false,cancelled:false},
+  {date:"3/25",endDate:"",time:"17:00",model:"R56",plate:"37마8729",region:"",title:"(배터리,엔진오일,차량점검",parts:[],phone:"010-6226-0772",note:"",done:false,cancelled:false},
   {date:"3/25",endDate:"",time:"16:30",model:"F56",plate:"384루3364",region:"",title:"번호판플레이트, 크롬그릴",parts:[],phone:"010 4666 7187",note:"",done:false,cancelled:false},
   {date:"3/26",endDate:"",time:"10:00",model:"F56sd",plate:"07저5387",region:"",title:"경유유입으로 센터들어갔다옴 마운트세트3종, 흡기매니폴드어셈블리, 조)하단인터쿨러파이프오링 egr쿨러누수점검",parts:["마운트세트", "인터쿨러파이프"],phone:"010 2220 1803",note:"",done:false,cancelled:false},
-  {date:"3/26",endDate:"",time:"10:00",model:"F60",plate:"154다9940",region:"",title:"DCT미션오일",parts:[],phone:"010-4479-1684",note:"",done:false,cancelled:false},
   {date:"3/26",endDate:"",time:"10:00",model:"F66",plate:"312다8736",region:"",title:"().신차엔진오일교환",parts:[],phone:"010-8718-7700",note:"",done:false,cancelled:false},
+  {date:"3/26",endDate:"",time:"10:00",model:"F60",plate:"154다9940",region:"",title:"DCT미션오일",parts:[],phone:"010-4479-1684",note:"",done:false,cancelled:false},
   {date:"3/26",endDate:"",time:"11:00",model:"F57",plate:"171모9688",region:"",title:"뒤패드교환, 차량점검",parts:[],phone:"010 9696 6712",note:"",done:false,cancelled:false},
   {date:"3/26",endDate:"",time:"11:00",model:"R60d",plate:"41조8233",region:"",title:"주행중 시동꺼짐 1번있었고 공회전시 엔진소리가 불규칙하게들림",parts:[],phone:"010 5348 0831",note:"",done:false,cancelled:false},
   {date:"3/26",endDate:"",time:"13:00",model:"F56",plate:"109모7079",region:"",title:"오일필터하우징 어셈블리, 엔진오일, 커넥터",parts:["오일필터하우징"],phone:"010 2644 8228",note:"",done:false,cancelled:false},
@@ -763,10 +786,11 @@ const DEFAULT_JOBS = [
   {date:"3/26",endDate:"",time:"17:00",model:"R60",plate:"37수3021",region:"",title:"트렁크알람,트렁크등은계속켜져있음,트렁크는안열림",parts:[],phone:"010-7189-9269",note:"",done:false,cancelled:false},
   {date:"3/26",endDate:"",time:"17:00",model:"F54",plate:"04모2307",region:"",title:"().패드점검후교환.차량점검",parts:[],phone:"010-8108-7105",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"10:00",model:"F60",plate:"26부7365",region:"",title:"컨트롤암세트 좌,우",parts:[],phone:"010 4127 7734",note:"",done:false,cancelled:false},
+  {date:"3/27",endDate:"",time:"10:00",model:"R60",plate:"19조9798",region:"",title:"엔진경고등점멸",parts:[],phone:"010-9094-4827",note:"-언덕-가속시 덜덜거림 플러그코일 교환후 많이 좋아졌으나, 가끔 남아있는듯 하다 함",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"10:00",model:"R53",plate:"68노3539",region:"",title:"쇼바 한대분지참교환 쇼바마운트 앞,뒤교환,엔진오일교환, 브레이크액 점검후교환, 차량점검",parts:["쇼바마운트", "브레이크액"],phone:"010 3675 2684",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"11:00",model:"F54",plate:"111조9283",region:"",title:"밋션오일교환",parts:[],phone:"010 8594 1398",note:"",done:false,cancelled:false},
-  {date:"3/27",endDate:"",time:"13:00",model:"F57",plate:"02구0961",region:"",title:"컨트롤암세트교환 ,115만 스테빌라이저점검, 타업체에서 점검받고 교환예약하러 방문해서 예약",parts:[],phone:"010 8755 4133",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"13:00",model:"R60d",plate:"46부9571",region:"",title:"댐퍼풀리세트, 밋션오일교환",parts:["댐퍼풀리세트"],phone:"010 8317 3130",note:"",done:false,cancelled:false},
+  {date:"3/27",endDate:"",time:"13:00",model:"F57",plate:"02구0961",region:"",title:"컨트롤암세트교환 ,115만 스테빌라이저점검, 타업체에서 점검받고 교환예약하러 방문해서 예약",parts:[],phone:"010 8755 4133",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"14:00",model:"F60",plate:"241더9640",region:"",title:"변속기오일알람 ,구동장치알람",parts:[],phone:"010 2401 8380",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"15:00",model:"F56",plate:"326라7745",region:"",title:"필터하우징점검.밋션오일교환추가",parts:[],phone:"010-9082-5459",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"",time:"15:00",model:"F56",plate:"52라1876",region:"",title:"엔진오일,패드점검후교환",parts:[],phone:"010-9250-3259",note:"",done:false,cancelled:false},
@@ -775,10 +799,10 @@ const DEFAULT_JOBS = [
   {date:"3/27",endDate:"",time:"17:00",model:"F54",plate:"183고3182",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-3392-1765",note:"",done:false,cancelled:false},
   {date:"3/27",endDate:"3/31",time:"20:00",model:"R53",plate:"14어7831",region:"",title:"저녁주차 파워석션호스,오일압력스위치, 서모스탯 교환, 60만원선결재",parts:[],phone:"010 2886 1338",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"10:00",model:"F54",plate:"372가7396",region:"",title:"마운트세트,타이밍체인커버",parts:["마운트세트", "타이밍체인커버"],phone:"010-7520-8284",note:"",done:false,cancelled:false},
-  {date:"3/28",endDate:"",time:"10:00",model:"F55",plate:"11조9477",region:"",title:"엔진오일교환, 차랑점검, 방지턱소음,타이어체크",parts:[],phone:"010 5496 9191",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"10:00",model:"F60",plate:"57마4551",region:"",title:"().엔진오일,차량점검",parts:[],phone:"010-9486-9990",note:"",done:false,cancelled:false},
-  {date:"3/28",endDate:"",time:"11:00",model:"F60",plate:"163다6769",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"010-4927-1388",note:"",done:false,cancelled:false},
+  {date:"3/28",endDate:"",time:"10:00",model:"F55",plate:"11조9477",region:"",title:"엔진오일교환, 차랑점검, 방지턱소음,타이어체크",parts:[],phone:"010 5496 9191",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"11:00",model:"R58",plate:"57서7642",region:"",title:"엔진경고등체크",parts:[],phone:"010-2268-9778",note:"-25.12 배기솔밸브 교환, 일주일정도 후에 경고등 들어옴, : 경고등이 간헐적으로 들어오나, 증상은 없는거 같다 함 (지난번 예약 출장으로 취소, 01월)",done:false,cancelled:false},
+  {date:"3/28",endDate:"",time:"11:00",model:"F60",plate:"163다6769",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"010-4927-1388",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"13:00",model:"F57",plate:"32나1227",region:"",title:"타이밍커버교환",parts:["타이밍커버"],phone:"010 7273 2344",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"13:00",model:"F56",plate:"307주8229",region:"",title:"정차중이나서행시에 소음진동점검,플러그,코일점검후교환",parts:[],phone:"010 5789 1295",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"13:00",model:"F56",plate:"64너5952",region:"",title:"마운트세트3종",parts:["마운트세트"],phone:"010 3648 9839",note:"",done:false,cancelled:false},
@@ -788,18 +812,23 @@ const DEFAULT_JOBS = [
   {date:"3/28",endDate:"",time:"15:00",model:"R56",plate:"12노4378",region:"",title:"엔진오일교환",parts:[],phone:"010 9155 9380",note:"",done:false,cancelled:false},
   {date:"3/28",endDate:"",time:"15:00",model:"F56",plate:"151러9440",region:"",title:"DCT미션오일,엔진오일.차량점검",parts:[],phone:"010-4945-3050",note:"",done:false,cancelled:false},
   {date:"3/29",endDate:"3/31",time:"17:00",model:"R60",plate:"33마9332",region:"",title:"마운트세트3종, 벨트정품교환,워터펌프 교환, 운)인터쿨러파이프오링 상단,하단",parts:["마운트세트", "워터펌프", "인터쿨러파이프"],phone:"010 2550 4742",note:"",done:false,cancelled:false},
-  {date:"3/30",endDate:"",time:"10:00",model:"F56d",plate:"10머0897",region:"",title:"엔진오일교환, 브레이크액점검후교환",parts:["브레이크액"],phone:"010 8874 1496",note:"",done:false,cancelled:false},
+  {date:"3/30",endDate:"",time:"10:00",model:"F55",plate:"64소0829",region:"",title:"댐퍼플리세트,패드센서점검",parts:[],phone:"010 8760 0227",note:"",done:false,cancelled:false},
   {date:"3/30",endDate:"",time:"10:00",model:"F55",plate:"14루9233",region:"",title:"엔진오일.리어쪽 TPMS 좌,우 교환",parts:[],phone:"010 4321 1209",note:"",done:false,cancelled:false},
-  {date:"3/30",endDate:"",time:"11:00",model:"F55",plate:"64소0829",region:"",title:"댐퍼플리세트,패드센서점검",parts:[],phone:"010 8760 0227",note:"",done:false,cancelled:false},
+  {date:"3/30",endDate:"",time:"10:00",model:"F56d",plate:"10머0897",region:"",title:"엔진오일교환, 브레이크액점검후교환",parts:["브레이크액"],phone:"010 8874 1496",note:"",done:false,cancelled:false},
   {date:"3/30",endDate:"",time:"11:00",model:"R56",plate:"32너9847",region:"",title:"엔진오일교환",parts:[],phone:"010 4630 8598",note:"",done:false,cancelled:false},
   {date:"3/30",endDate:"",time:"13:00",model:"F55",plate:"21수6050",region:"",title:"엔진오일교환, 와이퍼교환,조)인터쿨러파이프오링 점검",parts:["인터쿨러파이프"],phone:"010 9179 8533",note:"",done:false,cancelled:false},
   {date:"3/30",endDate:"",time:"13:00",model:"F56d",plate:"30도1000",region:"",title:"패드알람,구매점검",parts:[],phone:"010 3330 2323",note:"",done:false,cancelled:false},
-  {date:"3/30",endDate:"",time:"14:00",model:"R58",plate:"16서4901",region:"",title:"JCW...오일팬누유작업+엔진오일,연료필터,브레이크액",parts:["오일팬", "브레이크액"],phone:"010-3899-5632",note:"",done:false,cancelled:false},
   {date:"3/30",endDate:"",time:"14:00",model:"U25",plate:"309소3101",region:"",title:"신차엔진오일,기본점검",parts:[],phone:"010-5795-4562",note:"",done:false,cancelled:false},
+  {date:"3/30",endDate:"",time:"14:00",model:"R58",plate:"16서4901",region:"",title:"JCW...오일팬누유작업+엔진오일,연료필터,브레이크액",parts:["오일팬", "브레이크액"],phone:"010-3899-5632",note:"",done:false,cancelled:false},
+  {date:"3/30",endDate:"",time:"15:00",model:"F54",plate:"01버0210",region:"",title:"조) 브레이크등 결함",parts:[],phone:"010 4440 9115",note:"",done:false,cancelled:false},
   {date:"3/30",endDate:"",time:"16:00",model:"R57s",plate:"11두6261",region:"",title:"차량정검",parts:[],phone:"010 6488 6946",note:"",done:false,cancelled:false},
   {date:"3/31",endDate:"",time:"10:00",model:"F55",plate:"64소0827",region:"",title:"후드잘안열림점검, 운)도어유리 작동안됨",parts:[],phone:"010 7133 8709",note:"",done:false,cancelled:false},
   {date:"3/31",endDate:"",time:"10:00",model:"",plate:"101로9926",region:"",title:"f56..().댐퍼풀리세트점검후교환,엔진오일,브레이크액점검후교환",parts:["댐퍼풀리세트", "브레이크액"],phone:"010-4708-9926",note:"",done:false,cancelled:false},
+  {date:"3/31",endDate:"",time:"11:00",model:"F56",plate:"24버9127",region:"",title:"브레이크액,차량점검",parts:["브레이크액"],phone:"010-5008-9980",note:"",done:false,cancelled:false},
+  {date:"3/31",endDate:"",time:"13:00",model:"F54",plate:"26너5877",region:"",title:"().워터펌프어셈블리,마운트세트",parts:["마운트세트", "워터펌프어셈블리"],phone:"010-7305-0217",note:"",done:false,cancelled:false},
+  {date:"3/31",endDate:"",time:"13:00",model:"R56",plate:"64보4708",region:"",title:"오일량점검후보충,차량점검",parts:[],phone:"010-7103-0844",note:"",done:false,cancelled:false},
   {date:"3/31",endDate:"",time:"14:00",model:"F56",plate:"111조9261",region:"",title:"DCT미션오일",parts:[],phone:"010-5318-2790",note:"",done:false,cancelled:false},
+  {date:"3/31",endDate:"",time:"15:00",model:"F56",plate:"14머5768",region:"",title:"엔진오일,차량점검",parts:[],phone:"010-4914-7017",note:"",done:false,cancelled:false},
   {date:"3/31",endDate:"",time:"16:00",model:"F56",plate:"365누3396",region:"",title:"DCT미션오일",parts:[],phone:"010-3431-8857",note:"",done:false,cancelled:false},
 ];
 
@@ -879,6 +908,7 @@ function savePartMemos() {
 }
 let partMemos = loadPartMemos();
 let currentFilter = 'all';
+let partsOnly = false;
 let editingIndex = null;
 let deletingIndex = null;
 let modalStatus = { done: false, cancel: false };
@@ -977,23 +1007,6 @@ function renderSchedule() {
   JOBS.forEach((job,i) => {
     if (!byDate[job.date]) byDate[job.date] = [];
     byDate[job.date].push(i);
-    // 장기입고: 입고일 다음날부터 종료일까지 매일 표시
-    if (job.endDate && !job.cancelled && !job.done) {
-      const _now = getNow();
-      function _pd(s) { if(!s) return null; const [m,d]=s.split('/'); return new Date(_now.getFullYear(),parseInt(m)-1,parseInt(d)); }
-      const _start = _pd(job.date);
-      const _end   = _pd(job.endDate);
-      const _today = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
-      if (_start && _end) {
-        for (let _d = new Date(_start.getTime() + 86400000); _d <= _end && _d <= _today; _d = new Date(_d.getTime() + 86400000)) {
-          const _key = (_d.getMonth()+1) + '/' + _d.getDate();
-          if (_key !== job.date) {
-            if (!byDate[_key]) byDate[_key] = [];
-            if (!byDate[_key].includes(i)) byDate[_key].push(i);
-          }
-        }
-      }
-    }
   });
   const dates = Object.keys(byDate).sort((a,b) => sortKey({date:a,time:'0'}) - sortKey({date:b,time:'0'}));
   const todayStr = getTodayStr();
@@ -1001,6 +1014,14 @@ function renderSchedule() {
   dates.forEach((date, di) => {
     if (currentFilter !== 'all' && date !== currentFilter) return;
     const indices = byDate[date];
+    // partsOnly: 해당 날짜에 발주부품 있는 카드가 없으면 날짜 섹션 통째로 숨김
+    if (partsOnly) {
+      const hasPartsInDate = indices.some(i => {
+        const j = JOBS[i];
+        return j.parts && j.parts.length > 0 && !j.done && !j.cancelled;
+      });
+      if (!hasPartsInDate) return;
+    }
     const filteredIndices = indices.filter(ji => jobMatchesSearch(JOBS[ji]));
     if (filteredIndices.length === 0) return;
     const activeCount = filteredIndices.filter(i => !JOBS[i].done && !JOBS[i].cancelled).length;
@@ -1011,8 +1032,9 @@ function renderSchedule() {
     section.innerHTML = `<div class="day-header"><span class="day-label${isToday?' today':''}">${m}월 ${d}일 (${getDayName(date)})</span><span class="day-count">${activeCount}건</span></div>`;
 
     indices.forEach(ji => {
-      if (!jobMatchesSearch(JOBS[ji])) return;
       const job = JOBS[ji];
+      if (!jobMatchesSearch(job)) return;
+      if (partsOnly && !(job.parts && job.parts.length > 0)) return;
       const card = document.createElement('div');
       card.className = 'job-card'+(job.done?' is-done':'')+(job.cancelled?' is-cancelled':'');
       const endStr = job.endDate ? `<br><span style="font-size:10px;opacity:.5">→${job.endDate}</span>` : '';
@@ -1202,6 +1224,13 @@ function toggleLongCard(idx) {
 }
 
 // ── Filter ────────────────────────────────────────────────
+function togglePartsOnly() {
+  partsOnly = !partsOnly;
+  const btn = document.getElementById('partsToggleBtn');
+  if (btn) btn.classList.toggle('active', partsOnly);
+  renderSchedule();
+}
+
 function filterJobs(date, btn) {
   currentFilter = date;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -1374,6 +1403,11 @@ initTheme();
     renderSchedule();
   }
 })();
+
+
+
+
+
 
 
 
