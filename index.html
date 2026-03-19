@@ -285,6 +285,8 @@
 
 
 
+
+
 </style>
 </head>
 <body>
@@ -379,6 +381,8 @@
     </div>
   </div>
 </div>
+
+
 
 
 
@@ -1367,10 +1371,19 @@ initTheme();
       const sbMap = {};
       sbJobs.forEach(j => { sbMap[jobKey(j)] = j; });
 
-      // DEFAULT_JOBS 기준으로 병합:
-      // - 기존 일정 → Supabase 데이터 우선 (완료/메모 등 수정사항 유지)
-      // - 신규 일정 → DEFAULT_JOBS 데이터 사용
-      const merged = DEFAULT_JOBS.map(dj => sbMap[jobKey(dj)] || dj);
+      // DEFAULT_JOBS(새 ICS) 기준으로 병합:
+      // - 작업내용/날짜/번호판 등 일정 정보 → 항상 새 ICS 기준
+      // - 완료/취소 상태, 브라우저에서 수정한 메모 → Supabase에서 가져옴
+      const merged = DEFAULT_JOBS.map(dj => {
+        const sb = sbMap[jobKey(dj)];
+        if (!sb) return dj; // 신규 일정은 그대로
+        return {
+          ...dj,           // 새 ICS 내용 기준 (title, parts, phone 등)
+          done:      sb.done,      // 완료 상태 유지
+          cancelled: sb.cancelled, // 취소 상태 유지
+          note:      sb.note !== undefined ? sb.note : dj.note, // 메모는 수정한 내용 유지
+        };
+      });
 
       JOBS = merged;
       try { localStorage.setItem(LS_JOBS, JSON.stringify(JOBS)); } catch(e) {}
@@ -1403,6 +1416,8 @@ initTheme();
     renderSchedule();
   }
 })();
+
+
 
 
 
