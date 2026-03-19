@@ -299,6 +299,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -405,6 +406,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1448,10 +1450,12 @@ initTheme();
         const sb = sbMap[jobKey(dj)];
         if (!sb) return dj; // 신규 일정은 그대로
         return {
-          ...dj,           // 새 ICS 내용 기준 (title, parts, phone 등)
+          ...dj,           // 새 ICS 내용 기준 (title, phone 등)
           done:      sb.done,      // 완료 상태 유지
           cancelled: sb.cancelled, // 취소 상태 유지
-          note:      sb.note !== undefined ? sb.note : dj.note, // 메모는 수정한 내용 유지
+          note:      sb.note !== undefined ? sb.note : dj.note, // 메모 유지
+          // 브라우저에서 부품을 추가/수정했으면 그걸 우선 사용
+          parts:     (sb.parts && sb.parts.length > dj.parts.length) ? sb.parts : dj.parts,
         };
       });
 
@@ -1485,6 +1489,7 @@ initTheme();
     renderSchedule();
   }
 })();
+
 
 
 
