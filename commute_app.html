@@ -11,7 +11,8 @@
 <title>출퇴근 기록</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
 <!-- 네이버 지도: 로드 완료 후 initApp() 호출 -->
-<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=4474essorf&callback=onNaverMapLoad"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
   :root {
@@ -116,6 +117,10 @@
   .toast{position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(100px);background:#111;color:#fff;border-radius:100px;padding:13px 24px;font-size:14px;font-weight:600;transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:500;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
   .toast.show{transform:translateX(-50%) translateY(0)}
   ::-webkit-scrollbar{display:none}
+  .leaflet-control-zoom{border:none!important;box-shadow:0 2px 8px rgba(0,0,0,.15)!important;border-radius:10px!important}
+  .leaflet-control-zoom a{border:none!important;width:36px!important;height:36px!important;line-height:36px!important;font-size:18px!important}
+  .leaflet-control-zoom-in{border-radius:10px 10px 0 0!important}
+  .leaflet-control-zoom-out{border-radius:0 0 10px 10px!important}
 </style>
 </head>
 <body>
@@ -244,70 +249,55 @@
 
 <script>
 // ════════════════════════════════════
-//  네이버 지도 — callback으로 안전 초기화
+//  Leaflet 지도 (OpenStreetMap)
 // ════════════════════════════════════
-let naverMap    = null;
+let leafMap     = null;
 let locMarker   = null;
 let routePoly   = null;
 let showRoute   = true;
 let routeCoords = [];
 
-// 네이버 지도 SDK가 완전히 로드된 후 호출됨
-function onNaverMapLoad() {
-  naverMap = new naver.maps.Map('map', {
-    center: new naver.maps.LatLng(37.5665, 126.9780),
+function initMap() {
+  leafMap = L.map('map', {
+    center: [37.5665, 126.9780],
     zoom: 15,
-    mapTypeId: naver.maps.MapTypeId.NORMAL,
-    scaleControl: false,
-    logoControl: false,
-    mapDataControl: false,
     zoomControl: true,
-    zoomControlOptions: {
-      style: naver.maps.ZoomControlStyle.SMALL,
-      position: naver.maps.Position.TOP_LEFT,
-    },
+    attributionControl: false,
   });
-  // 지도 준비 완료 → 앱 초기화
-  initApp();
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(leafMap);
 }
 
 function updateMarker(lat, lng) {
-  if (!naverMap) return;
-  const pos = new naver.maps.LatLng(lat, lng);
+  if (!leafMap) return;
+  const pos  = [lat, lng];
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;background:#2563eb;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,.6)"></div>`,
+    iconSize: [18, 18], iconAnchor: [9, 9],
+  });
   if (!locMarker) {
-    locMarker = new naver.maps.Marker({
-      position: pos,
-      map: naverMap,
-      icon: {
-        content: `<div style="width:18px;height:18px;background:#2563eb;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,.6)"></div>`,
-        anchor: new naver.maps.Point(9, 9),
-      },
-    });
+    locMarker = L.marker(pos, { icon }).addTo(leafMap);
   } else {
-    locMarker.setPosition(pos);
+    locMarker.setLatLng(pos);
   }
 }
 
 function updatePolyline() {
-  if (!naverMap) return;
-  if (routePoly) { routePoly.setMap(null); routePoly = null; }
+  if (!leafMap) return;
+  if (routePoly) { routePoly.remove(); routePoly = null; }
   if (!showRoute || routeCoords.length < 2) return;
-  routePoly = new naver.maps.Polyline({
-    map: naverMap,
-    path: routeCoords,
-    strokeColor: '#2563eb',
-    strokeWeight: 5,
-    strokeOpacity: 0.85,
-    strokeLineCap: 'round',
-    strokeLineJoin: 'round',
-  });
+  routePoly = L.polyline(routeCoords, {
+    color: '#2563eb', weight: 5, opacity: 0.85,
+    lineJoin: 'round', lineCap: 'round',
+  }).addTo(leafMap);
 }
 
 function centerMap() {
-  if (!naverMap) return;
+  if (!leafMap) return;
   if (locMarker) {
-    naverMap.setCenter(locMarker.getPosition());
-    naverMap.setZoom(16);
+    leafMap.setView(locMarker.getLatLng(), 16, { animate: true });
   } else {
     showToast('📍 위치를 아직 못 찾았어요');
   }
@@ -318,6 +308,9 @@ function toggleRoute() {
   document.getElementById('routeBtn').textContent = showRoute ? '🗺' : '📏';
   updatePolyline();
 }
+
+// onNaverMapLoad 대신 바로 initApp 호출
+function onNaverMapLoad() {} // 빈 함수 (호환성 유지)
 
 // ════════════════════════════════════
 //  GPS
@@ -358,8 +351,7 @@ function onPos(pos) {
 
   if (firstFix) {
     firstFix = false;
-    naverMap.setCenter(new naver.maps.LatLng(la, lo));
-    naverMap.setZoom(16);
+    leafMap.setView([la, lo], 16, { animate: true });
     setGPS('on', '추적중');
   }
 
@@ -372,18 +364,16 @@ function onPos(pos) {
   if (ac <= 100) {
     if (!startPos) {
       startPos = { la, lo };
-      // 첫 위치는 경로 시작점으로 추가
-      routeCoords.push(new naver.maps.LatLng(la, lo));
+      routeCoords.push([la, lo]);
     } else {
       const d = haversine(startPos.la, startPos.lo, la, lo);
-      if (d > 0.010) { // 10m 이상 실제 이동했을 때만
+      if (d > 0.010) {
         currentDist += d;
         startPos = { la, lo };
         const disp = (Math.round(currentDist * 10) / 10).toFixed(1);
         document.getElementById('distVal').textContent = disp;
         document.getElementById('mapDist').textContent = disp + ' km';
-        // 실제 이동한 경우에만 경로에 추가
-        routeCoords.push(new naver.maps.LatLng(la, lo));
+        routeCoords.push([la, lo]);
         updatePolyline();
         updateFuel();
       }
@@ -603,6 +593,10 @@ function initApp() {
   // 지도가 완전히 준비된 후 GPS 시작
   startGPS();
 }
+
+// Leaflet은 스크립트 로드 즉시 사용 가능 → 직접 실행
+initMap();
+initApp();
 </script>
 </body>
 </html>
