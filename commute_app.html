@@ -326,8 +326,8 @@ function startGPS() {
   setGPS('wait', '위치 찾는중');
   watchId = navigator.geolocation.watchPosition(onPos, onErr, {
     enableHighAccuracy: true,
-    maximumAge: 2000,
-    timeout: 30000,
+    maximumAge: 0,      // 캐시 사용 안 함 → 항상 새 위치 요청
+    timeout: 15000,
   });
 }
 
@@ -589,9 +589,7 @@ function initApp() {
   } else { today = {date:todayKey()}; }
 
   renderToday(); renderStats(); renderMonthTabs(); renderHistory();
-
-  // 지도가 완전히 준비된 후 GPS 시작
-  startGPS();
+  setTimeout(startGPS, 500); // 지도 렌더링 완료 후 GPS 시작
 }
 
 // Leaflet은 스크립트 로드 즉시 사용 가능 → 직접 실행
