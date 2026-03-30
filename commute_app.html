@@ -9,10 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="출퇴근">
 <meta name="theme-color" content="#f2f1ed">
 <title>출퇴근 기록</title>
-
-<!-- 네이버 지도 API -->
-<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=r4uzto087l"></script>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<!-- 네이버 지도: 로드 완료 후 initApp() 호출 -->
+<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=r4uzto087l&callback=onNaverMapLoad"></script>
 
 <style>
   :root {
@@ -27,7 +26,6 @@
   body{background:var(--bg);color:var(--text);font-family:'Pretendard',-apple-system,'Noto Sans KR',sans-serif;min-height:100%;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
   .app{max-width:480px;margin:0 auto;padding-bottom:calc(60px + var(--safe-bot))}
 
-  /* ── Topbar ── */
   .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:calc(12px + var(--safe-top)) 16px 12px;position:sticky;top:0;z-index:200}
   .topbar-inner{display:flex;justify-content:space-between;align-items:center}
   .app-title{font-size:19px;font-weight:800;letter-spacing:-.5px}
@@ -40,11 +38,10 @@
 
   .content{padding:12px 12px 0;display:flex;flex-direction:column;gap:10px}
 
-  /* ── Map ── */
   .map-card{background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:var(--sh);position:relative}
   #map{width:100%;height:250px}
   .map-overlay{position:absolute;top:10px;right:10px;z-index:100;display:flex;flex-direction:column;gap:6px}
-  .map-btn{background:var(--surface);border:none;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:background .15s}
+  .map-btn{background:var(--surface);border:none;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18)}
   .map-btn:active{background:var(--tag)}
   .map-info-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
   .map-info-item{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -53,11 +50,9 @@
   .map-info-val.live{color:var(--green)}
   .map-sep{width:1px;height:28px;background:var(--border)}
 
-  /* ── Cards ── */
   .card{background:var(--surface);border-radius:22px;padding:18px;box-shadow:var(--sh)}
   .card-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
 
-  /* ── Today ── */
   .time-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
   .time-box{background:var(--tag);border-radius:16px;padding:14px 12px;text-align:center}
   .tb-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
@@ -67,14 +62,12 @@
   .work-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border);font-size:14px;color:var(--muted)}
   .work-val{font-family:'Space Mono',monospace;font-weight:700;color:var(--text);font-size:15px}
 
-  /* ── Two col ── */
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .mini-card{background:var(--surface);border-radius:18px;padding:16px;box-shadow:var(--sh)}
   .mc-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
   .mc-value{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--text);line-height:1}
   .mc-unit{font-size:11px;color:var(--muted);margin-top:4px}
 
-  /* ── Fuel ── */
   .fuel-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
   .input-group{display:flex;flex-direction:column;gap:5px}
   .input-group label{font-size:12px;font-weight:600;color:var(--muted)}
@@ -85,14 +78,12 @@
   .fr-row:last-child{border-bottom:none}
   .fr-val{font-family:'Space Mono',monospace;font-weight:700;color:#78350f;font-size:14px}
 
-  /* ── Stats ── */
   .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .stat-box{background:var(--surface);border-radius:16px;padding:16px;box-shadow:var(--sh)}
   .stat-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
   .stat-value{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--text)}
   .stat-sub{font-size:11px;color:var(--muted);margin-top:2px}
 
-  /* ── Buttons ── */
   .btn-main{width:100%;padding:18px;border:none;border-radius:18px;font-size:17px;font-weight:700;cursor:pointer;transition:all .15s;min-height:60px;display:flex;align-items:center;justify-content:center;gap:8px}
   .btn-in{background:var(--in);color:#fff;box-shadow:0 4px 20px rgba(37,99,235,.28)}
   .btn-out{background:var(--out);color:#fff;box-shadow:0 4px 20px rgba(220,38,38,.22)}
@@ -100,7 +91,6 @@
   .btn-reset{width:100%;padding:14px;border:2px solid var(--border);background:transparent;border-radius:14px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:8px;min-height:50px}
   .btn-reset:active{background:var(--tag)}
 
-  /* ── History ── */
   .hist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
   .month-tabs{display:flex;gap:6px}
   .month-tab{font-size:12px;font-weight:700;padding:6px 12px;border-radius:100px;cursor:pointer;border:none;background:var(--tag);color:var(--muted);min-height:32px;display:flex;align-items:center;transition:all .15s}
@@ -123,7 +113,6 @@
   .empty-state{text-align:center;padding:32px 0;color:var(--muted);line-height:2}
   .empty-icon{font-size:38px;display:block;margin-bottom:8px}
 
-  /* ── Toast ── */
   .toast{position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(100px);background:#111;color:#fff;border-radius:100px;padding:13px 24px;font-size:14px;font-weight:600;transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:500;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
   .toast.show{transform:translateX(-50%) translateY(0)}
   ::-webkit-scrollbar{display:none}
@@ -132,7 +121,6 @@
 <body>
 <div class="app">
 
-  <!-- 상단 바 -->
   <div class="topbar">
     <div class="topbar-inner">
       <div>
@@ -141,19 +129,18 @@
       </div>
       <button class="gps-chip" onclick="retryGPS()">
         <div class="gps-dot" id="gpsDot"></div>
-        <span id="gpsText">위치 찾는중</span>
+        <span id="gpsText">지도 로딩중</span>
       </button>
     </div>
   </div>
 
   <div class="content">
 
-    <!-- 네이버 지도 -->
     <div class="map-card">
       <div id="map"></div>
       <div class="map-overlay">
-        <button class="map-btn" onclick="centerMap()" title="내 위치">📍</button>
-        <button class="map-btn" onclick="toggleRoute()" id="routeBtn" title="경로">🗺</button>
+        <button class="map-btn" onclick="centerMap()">📍</button>
+        <button class="map-btn" onclick="toggleRoute()" id="routeBtn">🗺</button>
       </div>
       <div class="map-info-bar">
         <div class="map-info-item">
@@ -173,7 +160,6 @@
       </div>
     </div>
 
-    <!-- 오늘 출퇴근 -->
     <div class="card">
       <div class="card-label">오늘</div>
       <div class="time-grid">
@@ -192,7 +178,6 @@
       </div>
     </div>
 
-    <!-- 거리 + 연료비 -->
     <div class="two-col">
       <div class="mini-card">
         <div class="mc-label">이동 거리</div>
@@ -206,7 +191,6 @@
       </div>
     </div>
 
-    <!-- 연비 설정 -->
     <div class="card">
       <div class="card-label">⛽ 연비 설정</div>
       <div class="fuel-inputs">
@@ -227,7 +211,6 @@
       </div>
     </div>
 
-    <!-- 통계 -->
     <div class="stats-grid">
       <div class="stat-box">
         <div class="stat-label">이번 주 출근</div>
@@ -241,14 +224,12 @@
       </div>
     </div>
 
-    <!-- 버튼 -->
     <div>
       <button class="btn-main btn-in"  id="checkInBtn"  onclick="checkIn()">🏢 출근 체크인</button>
       <button class="btn-main btn-out" id="checkOutBtn" onclick="checkOut()" style="display:none">🏠 퇴근 체크아웃</button>
       <button class="btn-reset" onclick="resetToday()">오늘 기록 초기화</button>
     </div>
 
-    <!-- 기록 -->
     <div class="card">
       <div class="hist-header">
         <div class="card-label" style="margin:0">기록</div>
@@ -262,18 +243,19 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════════════
-//  네이버 지도 초기화
-// ════════════════════════════════════════
-let naverMap   = null;
-let locMarker  = null;
-let routePoly  = null;
-let showRoute  = true;
-let routeCoords = []; // naver.maps.LatLng 배열
+// ════════════════════════════════════
+//  네이버 지도 — callback으로 안전 초기화
+// ════════════════════════════════════
+let naverMap    = null;
+let locMarker   = null;
+let routePoly   = null;
+let showRoute   = true;
+let routeCoords = [];
 
-function initMap() {
+// 네이버 지도 SDK가 완전히 로드된 후 호출됨
+function onNaverMapLoad() {
   naverMap = new naver.maps.Map('map', {
-    center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 기본값
+    center: new naver.maps.LatLng(37.5665, 126.9780),
     zoom: 15,
     mapTypeId: naver.maps.MapTypeId.NORMAL,
     scaleControl: false,
@@ -285,10 +267,12 @@ function initMap() {
       position: naver.maps.Position.TOP_LEFT,
     },
   });
+  // 지도 준비 완료 → 앱 초기화
+  initApp();
 }
 
-// 내 위치 마커 (파란 원)
 function updateMarker(lat, lng) {
+  if (!naverMap) return;
   const pos = new naver.maps.LatLng(lat, lng);
   if (!locMarker) {
     locMarker = new naver.maps.Marker({
@@ -304,9 +288,9 @@ function updateMarker(lat, lng) {
   }
 }
 
-// 경로 폴리라인 업데이트
 function updatePolyline() {
-  if (routePoly) routePoly.setMap(null);
+  if (!naverMap) return;
+  if (routePoly) { routePoly.setMap(null); routePoly = null; }
   if (!showRoute || routeCoords.length < 2) return;
   routePoly = new naver.maps.Polyline({
     map: naverMap,
@@ -320,6 +304,7 @@ function updatePolyline() {
 }
 
 function centerMap() {
+  if (!naverMap) return;
   if (locMarker) {
     naverMap.setCenter(locMarker.getPosition());
     naverMap.setZoom(16);
@@ -334,9 +319,9 @@ function toggleRoute() {
   updatePolyline();
 }
 
-// ════════════════════════════════════════
+// ════════════════════════════════════
 //  GPS
-// ════════════════════════════════════════
+// ════════════════════════════════════
 let watchId     = null;
 let startPos    = null;
 let currentDist = 0;
@@ -346,7 +331,6 @@ function startGPS() {
   if (!navigator.geolocation) { setGPS('err', 'GPS 미지원'); return; }
   firstFix = true;
   setGPS('wait', '위치 찾는중');
-
   watchId = navigator.geolocation.watchPosition(onPos, onErr, {
     enableHighAccuracy: true,
     maximumAge: 2000,
@@ -367,6 +351,9 @@ function retryGPS() {
 }
 
 function onPos(pos) {
+  // 지도가 아직 초기화 안 됐으면 무시
+  if (!naverMap) return;
+
   const { latitude:la, longitude:lo, accuracy:ac, speed:sp } = pos.coords;
 
   if (firstFix) {
@@ -376,31 +363,31 @@ function onPos(pos) {
     setGPS('on', '추적중');
   }
 
-  // 마커 이동
   updateMarker(la, lo);
 
-  // 정확도 / 속도 표시
   document.getElementById('mapAcc').textContent  = `±${Math.round(ac)}m`;
   document.getElementById('mapSpeed').textContent =
     (sp != null && sp >= 0) ? `${Math.round(sp * 3.6)} km/h` : '— km/h';
 
-  // 거리 누적 (정확도 100m 이내)
   if (ac <= 100) {
     if (!startPos) {
       startPos = { la, lo };
+      // 첫 위치는 경로 시작점으로 추가
+      routeCoords.push(new naver.maps.LatLng(la, lo));
     } else {
       const d = haversine(startPos.la, startPos.lo, la, lo);
-      if (d > 0.010) { // 10m 이상 이동
+      if (d > 0.010) { // 10m 이상 실제 이동했을 때만
         currentDist += d;
         startPos = { la, lo };
         const disp = (Math.round(currentDist * 10) / 10).toFixed(1);
         document.getElementById('distVal').textContent = disp;
         document.getElementById('mapDist').textContent = disp + ' km';
+        // 실제 이동한 경우에만 경로에 추가
+        routeCoords.push(new naver.maps.LatLng(la, lo));
+        updatePolyline();
         updateFuel();
       }
     }
-    routeCoords.push(new naver.maps.LatLng(la, lo));
-    updatePolyline();
   }
 }
 
@@ -422,15 +409,14 @@ function haversine(la1,lo1,la2,lo2) {
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// ════════════════════════════════════════
+// ════════════════════════════════════
 //  앱 상태
-// ════════════════════════════════════════
+// ════════════════════════════════════
 let today        = {};
 let history      = JSON.parse(localStorage.getItem('commuteHistory') || '[]');
 let currentMonth = new Date().getMonth();
 const todayKey   = () => new Date().toISOString().slice(0,10);
 
-// ── 연비 ────────────────────────────────
 function loadFuel() {
   const s = JSON.parse(localStorage.getItem('fuelSettings') || '{}');
   if (s.eff)   document.getElementById('fuelEff').value   = s.eff;
@@ -449,7 +435,7 @@ function getFuel() {
   };
 }
 function calcCost(km) {
-  const {eff,price} = getFuel();
+  const {eff, price} = getFuel();
   return Math.round((km * 2 / eff) * price);
 }
 function updateFuel() {
@@ -477,7 +463,6 @@ function updateMonthFuel() {
     recs.length ? recs.reduce((s,h) => s + calcCost(h.distance), 0).toLocaleString() : '—';
 }
 
-// ── 체크인 / 아웃 ────────────────────────
 function checkIn() {
   today.date   = todayKey();
   today.inTime = new Date().toTimeString().slice(0,5);
@@ -487,7 +472,10 @@ function checkIn() {
   document.getElementById('fuelResult').style.display = 'none';
   document.getElementById('todayFuelCost').textContent = '—';
   updatePolyline();
-  saveToday(); renderToday(); startGPS();
+  saveToday(); renderToday();
+  // 기존 GPS 워처가 있으면 반드시 먼저 중단 후 재시작 (중복 방지)
+  stopGPS();
+  startGPS();
   showToast('🏢 출근 기록 완료!');
 }
 function checkOut() {
@@ -511,7 +499,6 @@ function resetToday() {
   showToast('초기화 완료');
 }
 
-// ── 렌더 ────────────────────────────────
 function renderToday() {
   const inEl  = document.getElementById('inTimeDisplay');
   const outEl = document.getElementById('outTimeDisplay');
@@ -594,12 +581,11 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-// ── 초기화 ──────────────────────────────
-function init() {
+// 지도 로드 완료 후 onNaverMapLoad() → initApp() 순서로 실행됨
+function initApp() {
   document.getElementById('todayDate').textContent =
     new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
   loadFuel();
-  initMap();
 
   const saved = localStorage.getItem('commuteToday');
   if (saved) {
@@ -613,10 +599,10 @@ function init() {
   } else { today = {date:todayKey()}; }
 
   renderToday(); renderStats(); renderMonthTabs(); renderHistory();
-  setTimeout(startGPS, 600);
-}
 
-init();
+  // 지도가 완전히 준비된 후 GPS 시작
+  startGPS();
+}
 </script>
 </body>
 </html>
