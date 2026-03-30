@@ -20,6 +20,7 @@
     --text2: #8888aa;
     --text3: #55556a;
     --accent: #3ecf8e;
+    --accent-dark: #2aab73;
     --accent-dim: rgba(62,207,142,0.12);
     --accent-dim2: rgba(62,207,142,0.22);
     --blue: #4d9fff;
@@ -28,6 +29,8 @@
     --red-dim: rgba(255,92,92,0.12);
     --amber: #ffb340;
     --amber-dim: rgba(255,179,64,0.12);
+    --nav-bg: rgba(10,10,15,0.92);
+    --map-filter: invert(1) hue-rotate(180deg) brightness(0.85);
     --mono: 'DM Mono', monospace;
     --sans: 'Pretendard', -apple-system, sans-serif;
     --r: 12px;
@@ -36,8 +39,31 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  html.light {
+    --bg: #f5f5f0;
+    --bg2: #ffffff;
+    --bg3: #ebebе6;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #111118;
+    --text2: #555566;
+    --text3: #999aaa;
+    --accent: #1a9e66;
+    --accent-dark: #157a50;
+    --accent-dim: rgba(26,158,102,0.1);
+    --accent-dim2: rgba(26,158,102,0.2);
+    --blue: #1a6fd4;
+    --blue-dim: rgba(26,111,212,0.1);
+    --red: #d63c3c;
+    --red-dim: rgba(214,60,60,0.1);
+    --amber: #c47f00;
+    --amber-dim: rgba(196,127,0,0.1);
+    --nav-bg: rgba(245,245,240,0.94);
+    --map-filter: none;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; transition: background 0.25s, color 0.25s; }
 
   /* ── App Shell ── */
   #app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
@@ -48,11 +74,12 @@
     position: fixed; bottom: 0; left: 0; right: 0;
     height: calc(var(--nav-h) + var(--safe-bottom));
     padding-bottom: var(--safe-bottom);
-    background: rgba(10,10,15,0.92);
+    background: var(--nav-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
     display: flex; align-items: stretch; z-index: 1000;
+    transition: background 0.25s, border-color 0.25s;
   }
   .nav-btn {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -62,6 +89,17 @@
   }
   .nav-btn.active { color: var(--accent); }
   .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+  /* ── Theme Toggle ── */
+  #theme-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 1100;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--bg2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; transition: all 0.25s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  }
+  #theme-toggle:active { transform: scale(0.92); }
 
   /* ── Panels ── */
   .panel { display: none; }
@@ -84,10 +122,11 @@
   /* Map overlay badge */
   .map-badge {
     position: absolute; top: 10px; left: 10px; z-index: 999;
-    background: rgba(10,10,15,0.85); backdrop-filter: blur(10px);
+    background: var(--bg2); backdrop-filter: blur(10px);
     border: 1px solid var(--border2); border-radius: 8px;
     padding: 6px 10px; font-size: 12px; font-family: var(--mono);
     color: var(--text2); display: flex; align-items: center; gap: 6px;
+    opacity: 0.92;
   }
   .map-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); }
   .map-badge .dot.on { background: var(--accent); animation: blink 1.2s infinite; }
@@ -108,7 +147,7 @@
   /* Main CTA */
   .track-cta { margin: 10px 12px 0; }
   .btn-start {
-    width: 100%; padding: 18px; background: var(--accent); color: #0a0a0f;
+    width: 100%; padding: 18px; background: var(--accent); color: #fff;
     border: none; border-radius: var(--r2); font-family: var(--sans); font-size: 16px; font-weight: 600;
     cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;
     -webkit-appearance: none;
@@ -177,7 +216,7 @@
   .eff-lbl { font-size: 11px; color: var(--text3); }
   .cost-big { font-family: var(--mono); font-size: 18px; color: var(--text); }
   .btn-confirm {
-    width: 100%; padding: 17px; background: var(--accent); color: #0a0a0f;
+    width: 100%; padding: 17px; background: var(--accent); color: #fff;
     border: none; border-radius: var(--r2); font-family: var(--sans);
     font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 4px;
     -webkit-appearance: none;
@@ -263,6 +302,7 @@
 <body>
 
 <div id="app">
+  <button id="theme-toggle" onclick="toggleTheme()" title="테마 전환">🌙</button>
   <div id="content">
 
     <!-- ════ TRACKING PANEL ════ -->
@@ -444,9 +484,7 @@ function initMap() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap', maxZoom: 19
   }).addTo(map);
-  // Dark tile filter
-  const mapEl = document.getElementById('map');
-  mapEl.style.filter = 'invert(1) hue-rotate(180deg) brightness(0.85)';
+  updateMapFilter();
 }
 
 // ── GPS ──
@@ -715,9 +753,12 @@ function renderStats() {
 }
 
 function renderCharts() {
-  const isDark = true;
-  const gridColor = 'rgba(255,255,255,0.06)';
-  const labelColor = '#55556a';
+  const isLight = document.documentElement.classList.contains('light');
+  const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.06)';
+  const labelColor = isLight ? '#999aaa' : '#55556a';
+  const accentLine = isLight ? '#1a9e66' : '#3ecf8e';
+  const accentFill = isLight ? 'rgba(26,158,102,0.07)' : 'rgba(62,207,142,0.07)';
+  const blueFill = isLight ? 'rgba(26,111,212,0.5)' : 'rgba(77,159,255,0.55)';
 
   const effData = [...trips].sort((a,b) => a.date.localeCompare(b.date)).filter(t => t.efficiency > 0).slice(-10);
   const ctxE = document.getElementById('eff-chart').getContext('2d');
@@ -726,7 +767,7 @@ function renderCharts() {
     type: 'line',
     data: {
       labels: effData.map(t => t.date.slice(5)),
-      datasets: [{ data: effData.map(t => t.efficiency), borderColor: '#3ecf8e', backgroundColor: 'rgba(62,207,142,0.07)', tension: 0.35, pointRadius: 4, pointBackgroundColor: '#3ecf8e', fill: true }]
+      datasets: [{ data: effData.map(t => t.efficiency), borderColor: accentLine, backgroundColor: accentFill, tension: 0.35, pointRadius: 4, pointBackgroundColor: accentLine, fill: true }]
     },
     options: {
       responsive: true, plugins: { legend: { display: false } },
@@ -746,7 +787,7 @@ function renderCharts() {
     type: 'bar',
     data: {
       labels: mos,
-      datasets: [{ data: mos.map(m => parseFloat(mm[m].toFixed(1))), backgroundColor: 'rgba(77,159,255,0.55)', borderRadius: 4 }]
+      datasets: [{ data: mos.map(m => parseFloat(mm[m].toFixed(1))), backgroundColor: blueFill, borderRadius: 4 }]
     },
     options: {
       responsive: true, plugins: { legend: { display: false } },
@@ -756,6 +797,21 @@ function renderCharts() {
       }
     }
   });
+}
+
+// ── Theme ──
+function updateMapFilter() {
+  const mapEl = document.getElementById('map');
+  if (mapEl) mapEl.style.filter = document.documentElement.classList.contains('light') ? 'none' : 'invert(1) hue-rotate(180deg) brightness(0.85)';
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('theme-toggle').textContent = isLight ? '🌙' : '☀️';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', isLight ? '#f5f5f0' : '#0a0a0f');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  updateMapFilter();
+  if (effChart || distChart) renderCharts();
 }
 
 // ── Toast ──
@@ -769,6 +825,14 @@ function showToast(msg) {
 }
 
 // ── Init ──
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.documentElement.classList.add('light');
+  document.getElementById('theme-toggle').textContent = '🌙';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f5f5f0');
+} else {
+  document.getElementById('theme-toggle').textContent = '☀️';
+}
 initMap();
 </script>
 </body>
