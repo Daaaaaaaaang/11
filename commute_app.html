@@ -10,10 +10,8 @@
 <meta name="theme-color" content="#f2f1ed">
 <title>출퇴근 기록</title>
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- 네이버 지도 API -->
+<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=r4uzto087l"></script>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
 
 <style>
@@ -34,7 +32,7 @@
   .topbar-inner{display:flex;justify-content:space-between;align-items:center}
   .app-title{font-size:19px;font-weight:800;letter-spacing:-.5px}
   .today-date{font-size:12px;color:var(--muted);margin-top:2px}
-  .gps-chip{display:flex;align-items:center;gap:6px;background:var(--tag);border-radius:100px;padding:8px 14px;font-size:12px;font-weight:700;color:var(--muted);min-height:38px;border:none;cursor:pointer;transition:background .2s}
+  .gps-chip{display:flex;align-items:center;gap:6px;background:var(--tag);border-radius:100px;padding:8px 14px;font-size:12px;font-weight:700;color:var(--muted);min-height:38px;border:none;cursor:pointer}
   .gps-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);transition:all .3s;flex-shrink:0}
   .gps-dot.on{background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 1.5s infinite}
   .gps-dot.err{background:var(--out)}
@@ -44,16 +42,16 @@
 
   /* ── Map ── */
   .map-card{background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:var(--sh);position:relative}
-  #map{width:100%;height:240px;z-index:1}
-  .map-overlay{position:absolute;top:10px;right:10px;z-index:400;display:flex;flex-direction:column;gap:6px}
-  .map-btn{background:var(--surface);border:none;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:background .15s}
+  #map{width:100%;height:250px}
+  .map-overlay{position:absolute;top:10px;right:10px;z-index:100;display:flex;flex-direction:column;gap:6px}
+  .map-btn{background:var(--surface);border:none;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:background .15s}
   .map-btn:active{background:var(--tag)}
-  .map-info-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+  .map-info-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
   .map-info-item{display:flex;flex-direction:column;align-items:center;gap:2px}
   .map-info-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
   .map-info-val{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
   .map-info-val.live{color:var(--green)}
-  .map-sep{width:1px;height:30px;background:var(--border)}
+  .map-sep{width:1px;height:28px;background:var(--border)}
 
   /* ── Cards ── */
   .card{background:var(--surface);border-radius:22px;padding:18px;box-shadow:var(--sh)}
@@ -129,10 +127,6 @@
   .toast{position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(100px);background:#111;color:#fff;border-radius:100px;padding:13px 24px;font-size:14px;font-weight:600;transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:500;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
   .toast.show{transform:translateX(-50%) translateY(0)}
   ::-webkit-scrollbar{display:none}
-
-  /* Leaflet overrides */
-  .leaflet-control-zoom{border:none!important;box-shadow:0 2px 8px rgba(0,0,0,.15)!important}
-  .leaflet-control-zoom a{border-radius:8px!important;border:none!important;width:34px!important;height:34px!important;line-height:34px!important;font-size:18px!important;margin-bottom:4px!important}
 </style>
 </head>
 <body>
@@ -145,7 +139,7 @@
         <div class="app-title">🚗 출퇴근 기록</div>
         <div class="today-date" id="todayDate"></div>
       </div>
-      <button class="gps-chip" id="gpsChip" onclick="retryGPS()">
+      <button class="gps-chip" onclick="retryGPS()">
         <div class="gps-dot" id="gpsDot"></div>
         <span id="gpsText">위치 찾는중</span>
       </button>
@@ -154,17 +148,17 @@
 
   <div class="content">
 
-    <!-- 지도 -->
+    <!-- 네이버 지도 -->
     <div class="map-card">
       <div id="map"></div>
       <div class="map-overlay">
-        <button class="map-btn" onclick="centerMap()" title="내 위치로">📍</button>
-        <button class="map-btn" onclick="toggleRoute()" id="routeBtn" title="경로 보기">🗺</button>
+        <button class="map-btn" onclick="centerMap()" title="내 위치">📍</button>
+        <button class="map-btn" onclick="toggleRoute()" id="routeBtn" title="경로">🗺</button>
       </div>
       <div class="map-info-bar">
         <div class="map-info-item">
           <div class="map-info-label">이동 거리</div>
-          <div class="map-info-val live" id="mapDist">0.00 km</div>
+          <div class="map-info-val live" id="mapDist">0.0 km</div>
         </div>
         <div class="map-sep"></div>
         <div class="map-info-item">
@@ -202,7 +196,7 @@
     <div class="two-col">
       <div class="mini-card">
         <div class="mc-label">이동 거리</div>
-        <div class="mc-value" id="distVal">0.00</div>
+        <div class="mc-value" id="distVal">0.0</div>
         <div class="mc-unit">km (편도)</div>
       </div>
       <div class="mini-card">
@@ -247,7 +241,7 @@
       </div>
     </div>
 
-    <!-- 체크인/아웃 버튼 -->
+    <!-- 버튼 -->
     <div>
       <button class="btn-main btn-in"  id="checkInBtn"  onclick="checkIn()">🏢 출근 체크인</button>
       <button class="btn-main btn-out" id="checkOutBtn" onclick="checkOut()" style="display:none">🏠 퇴근 체크아웃</button>
@@ -269,61 +263,66 @@
 
 <script>
 // ════════════════════════════════════════
-//  Map init
+//  네이버 지도 초기화
 // ════════════════════════════════════════
-const map = L.map('map', {
-  zoomControl: true,
-  attributionControl: false,
-  dragging: true,
-}).setView([37.5665, 126.9780], 14); // 서울 기본값
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-}).addTo(map);
-
-// 현재 위치 마커 (파란 원)
-const locIcon = L.divIcon({
-  className: '',
-  html: `<div style="width:18px;height:18px;background:#2563eb;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,.5)"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
-});
+let naverMap   = null;
 let locMarker  = null;
-let accCircle  = null;
-let routeLine  = null;
+let routePoly  = null;
 let showRoute  = true;
-let routePoints = [];
+let routeCoords = []; // naver.maps.LatLng 배열
 
-function updateMapPosition(lat, lon, acc) {
-  if (!locMarker) {
-    locMarker = L.marker([lat, lon], { icon: locIcon }).addTo(map);
-  } else {
-    locMarker.setLatLng([lat, lon]);
-  }
-  if (accCircle) accCircle.remove();
-  accCircle = L.circle([lat, lon], {
-    radius: acc,
-    color: '#2563eb',
-    fillColor: '#2563eb',
-    fillOpacity: 0.08,
-    weight: 1,
-  }).addTo(map);
+function initMap() {
+  naverMap = new naver.maps.Map('map', {
+    center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 기본값
+    zoom: 15,
+    mapTypeId: naver.maps.MapTypeId.NORMAL,
+    scaleControl: false,
+    logoControl: false,
+    mapDataControl: false,
+    zoomControl: true,
+    zoomControlOptions: {
+      style: naver.maps.ZoomControlStyle.SMALL,
+      position: naver.maps.Position.TOP_LEFT,
+    },
+  });
 }
 
-function updateRouteLine() {
-  if (routeLine) routeLine.remove();
-  if (routePoints.length < 2 || !showRoute) return;
-  routeLine = L.polyline(routePoints, {
-    color: '#2563eb',
-    weight: 4,
-    opacity: 0.8,
-    lineJoin: 'round',
-  }).addTo(map);
+// 내 위치 마커 (파란 원)
+function updateMarker(lat, lng) {
+  const pos = new naver.maps.LatLng(lat, lng);
+  if (!locMarker) {
+    locMarker = new naver.maps.Marker({
+      position: pos,
+      map: naverMap,
+      icon: {
+        content: `<div style="width:18px;height:18px;background:#2563eb;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,.6)"></div>`,
+        anchor: new naver.maps.Point(9, 9),
+      },
+    });
+  } else {
+    locMarker.setPosition(pos);
+  }
+}
+
+// 경로 폴리라인 업데이트
+function updatePolyline() {
+  if (routePoly) routePoly.setMap(null);
+  if (!showRoute || routeCoords.length < 2) return;
+  routePoly = new naver.maps.Polyline({
+    map: naverMap,
+    path: routeCoords,
+    strokeColor: '#2563eb',
+    strokeWeight: 5,
+    strokeOpacity: 0.85,
+    strokeLineCap: 'round',
+    strokeLineJoin: 'round',
+  });
 }
 
 function centerMap() {
   if (locMarker) {
-    map.setView(locMarker.getLatLng(), 16, { animate: true });
+    naverMap.setCenter(locMarker.getPosition());
+    naverMap.setZoom(16);
   } else {
     showToast('📍 위치를 아직 못 찾았어요');
   }
@@ -332,7 +331,7 @@ function centerMap() {
 function toggleRoute() {
   showRoute = !showRoute;
   document.getElementById('routeBtn').textContent = showRoute ? '🗺' : '📏';
-  updateRouteLine();
+  updatePolyline();
 }
 
 // ════════════════════════════════════════
@@ -344,14 +343,9 @@ let currentDist = 0;
 let firstFix    = true;
 
 function startGPS() {
-  if (!navigator.geolocation) {
-    setGPSStatus('err', 'GPS 미지원');
-    return;
-  }
+  if (!navigator.geolocation) { setGPS('err', 'GPS 미지원'); return; }
   firstFix = true;
-  routePoints = [];
-  updateRouteLine();
-  setGPSStatus('wait', '위치 찾는중');
+  setGPS('wait', '위치 찾는중');
 
   watchId = navigator.geolocation.watchPosition(onPos, onErr, {
     enableHighAccuracy: true,
@@ -362,83 +356,81 @@ function startGPS() {
 
 function stopGPS() {
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-  setGPSStatus('off', 'GPS');
+  setGPS('off', 'GPS');
 }
 
 function retryGPS() {
   stopGPS();
-  currentDist = 0;
-  startPos    = null;
-  routePoints = [];
-  updateRouteLine();
+  currentDist = 0; startPos = null;
+  routeCoords = []; updatePolyline();
   startGPS();
 }
 
 function onPos(pos) {
   const { latitude:la, longitude:lo, accuracy:ac, speed:sp } = pos.coords;
 
-  // 첫 수신
   if (firstFix) {
     firstFix = false;
-    map.setView([la, lo], 16, { animate: true });
-    setGPSStatus('on', '추적중');
+    naverMap.setCenter(new naver.maps.LatLng(la, lo));
+    naverMap.setZoom(16);
+    setGPS('on', '추적중');
   }
 
-  // 지도 마커 업데이트
-  updateMapPosition(la, lo, ac);
+  // 마커 이동
+  updateMarker(la, lo);
 
-  // 정확도 & 속도 표시
-  document.getElementById('mapAcc').textContent = `±${Math.round(ac)}m`;
+  // 정확도 / 속도 표시
+  document.getElementById('mapAcc').textContent  = `±${Math.round(ac)}m`;
   document.getElementById('mapSpeed').textContent =
     (sp != null && sp >= 0) ? `${Math.round(sp * 3.6)} km/h` : '— km/h';
 
-  // 이동 거리 계산 (정확도 100m 이내만)
+  // 거리 누적 (정확도 100m 이내)
   if (ac <= 100) {
     if (!startPos) {
       startPos = { la, lo };
     } else {
       const d = haversine(startPos.la, startPos.lo, la, lo);
-      if (d > 0.003) { // 3m 이상 이동 시
+      if (d > 0.010) { // 10m 이상 이동
         currentDist += d;
         startPos = { la, lo };
-        document.getElementById('distVal').textContent = currentDist.toFixed(2);
-        document.getElementById('mapDist').textContent = currentDist.toFixed(2) + ' km';
+        const disp = (Math.round(currentDist * 10) / 10).toFixed(1);
+        document.getElementById('distVal').textContent = disp;
+        document.getElementById('mapDist').textContent = disp + ' km';
         updateFuel();
       }
     }
-    routePoints.push([la, lo]);
-    updateRouteLine();
+    routeCoords.push(new naver.maps.LatLng(la, lo));
+    updatePolyline();
   }
 }
 
 function onErr(err) {
   const msgs = { 1:'권한 거부됨', 2:'신호 없음', 3:'시간 초과' };
-  setGPSStatus('err', msgs[err.code] || '오류');
+  setGPS('err', msgs[err.code] || '오류');
   showToast('📍 위치 권한을 허용해주세요');
 }
 
-function setGPSStatus(state, label) {
-  const dot  = document.getElementById('gpsDot');
-  const text = document.getElementById('gpsText');
-  dot.className = 'gps-dot' + (state === 'on' ? ' on' : state === 'err' ? ' err' : '');
-  text.textContent = label;
+function setGPS(state, label) {
+  const dot = document.getElementById('gpsDot');
+  dot.className = 'gps-dot' + (state==='on' ? ' on' : state==='err' ? ' err' : '');
+  document.getElementById('gpsText').textContent = label;
 }
 
 function haversine(la1,lo1,la2,lo2) {
-  const R=6371,dL=(la2-la1)*Math.PI/180,dl=(lo2-lo1)*Math.PI/180;
+  const R=6371, dL=(la2-la1)*Math.PI/180, dl=(lo2-lo1)*Math.PI/180;
   const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dl/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 // ════════════════════════════════════════
-//  App State
+//  앱 상태
 // ════════════════════════════════════════
 let today        = {};
 let history      = JSON.parse(localStorage.getItem('commuteHistory') || '[]');
 let currentMonth = new Date().getMonth();
 const todayKey   = () => new Date().toISOString().slice(0,10);
 
-// ─── Fuel ──────────────────────────────
+// ── 연비 ────────────────────────────────
 function loadFuel() {
   const s = JSON.parse(localStorage.getItem('fuelSettings') || '{}');
   if (s.eff)   document.getElementById('fuelEff').value   = s.eff;
@@ -462,16 +454,17 @@ function calcCost(km) {
 }
 function updateFuel() {
   const dist = currentDist > 0 ? currentDist : (today.distance || 0);
-  if (dist < 0.01) {
+  if (dist < 0.05) {
     document.getElementById('fuelResult').style.display = 'none';
     document.getElementById('todayFuelCost').textContent = '—';
     updateMonthFuel(); return;
   }
   const {eff, price} = getFuel();
-  const rt = dist * 2, L = rt / eff, cost = Math.round(L * price);
-  document.getElementById('frOneway').textContent  = dist.toFixed(2) + ' km';
-  document.getElementById('frRound').textContent   = rt.toFixed(2)   + ' km';
-  document.getElementById('frLiters').textContent  = L.toFixed(2)    + ' L';
+  const rounded = Math.round(dist * 10) / 10;
+  const rt = rounded * 2, L = rt / eff, cost = Math.round(L * price);
+  document.getElementById('frOneway').textContent  = rounded.toFixed(1) + ' km';
+  document.getElementById('frRound').textContent   = rt.toFixed(1)      + ' km';
+  document.getElementById('frLiters').textContent  = L.toFixed(2)       + ' L';
   document.getElementById('frCost').textContent    = cost.toLocaleString() + ' 원';
   document.getElementById('fuelResult').style.display = 'block';
   document.getElementById('todayFuelCost').textContent = cost.toLocaleString();
@@ -484,49 +477,46 @@ function updateMonthFuel() {
     recs.length ? recs.reduce((s,h) => s + calcCost(h.distance), 0).toLocaleString() : '—';
 }
 
-// ─── Check in/out ──────────────────────
+// ── 체크인 / 아웃 ────────────────────────
 function checkIn() {
   today.date   = todayKey();
   today.inTime = new Date().toTimeString().slice(0,5);
-  currentDist  = 0;
-  routePoints  = [];
-  startPos     = null;
-  document.getElementById('distVal').textContent = '0.00';
-  document.getElementById('mapDist').textContent = '0.00 km';
+  currentDist  = 0; routeCoords = []; startPos = null;
+  document.getElementById('distVal').textContent = '0.0';
+  document.getElementById('mapDist').textContent = '0.0 km';
   document.getElementById('fuelResult').style.display = 'none';
   document.getElementById('todayFuelCost').textContent = '—';
-  saveToday(); renderToday();
-  startGPS();
+  updatePolyline();
+  saveToday(); renderToday(); startGPS();
   showToast('🏢 출근 기록 완료!');
 }
 function checkOut() {
   today.outTime  = new Date().toTimeString().slice(0,5);
-  today.distance = parseFloat(currentDist.toFixed(2));
+  today.distance = parseFloat((Math.round(currentDist * 10) / 10).toFixed(1));
   saveToday(); stopGPS();
   const idx = history.findIndex(h => h.date === today.date);
   if (idx >= 0) history[idx] = {...today}; else history.unshift({...today});
   saveHistory();
   renderToday(); renderStats(); renderHistory(); updateFuel();
-  showToast('🏠 퇴근 기록 완료! ' + today.distance.toFixed(2) + 'km');
+  showToast('🏠 퇴근 완료! ' + today.distance.toFixed(1) + 'km');
 }
 function resetToday() {
   if (!confirm('오늘 기록을 초기화할까요?')) return;
-  today = {date: todayKey()}; currentDist = 0; routePoints = []; startPos = null;
-  document.getElementById('distVal').textContent = '0.00';
-  document.getElementById('mapDist').textContent = '0.00 km';
+  today = {date:todayKey()}; currentDist = 0; routeCoords = []; startPos = null;
+  document.getElementById('distVal').textContent = '0.0';
+  document.getElementById('mapDist').textContent = '0.0 km';
   document.getElementById('fuelResult').style.display = 'none';
   document.getElementById('todayFuelCost').textContent = '—';
-  stopGPS(); updateRouteLine(); saveToday(); renderToday();
+  stopGPS(); updatePolyline(); saveToday(); renderToday();
   showToast('초기화 완료');
 }
 
-// ─── Render ────────────────────────────
+// ── 렌더 ────────────────────────────────
 function renderToday() {
   const inEl  = document.getElementById('inTimeDisplay');
   const outEl = document.getElementById('outTimeDisplay');
   const inBtn  = document.getElementById('checkInBtn');
   const outBtn = document.getElementById('checkOutBtn');
-
   if (today.inTime) {
     inEl.textContent = today.inTime; inEl.className = 'tb-value in';
     inBtn.style.display = 'none'; outBtn.style.display = 'flex';
@@ -542,43 +532,41 @@ function renderToday() {
   }
   const dur = document.getElementById('workDuration');
   if (today.inTime && today.outTime) {
-    const [ih,im] = today.inTime.split(':').map(Number);
-    const [oh,om] = today.outTime.split(':').map(Number);
-    const mins = (oh*60+om) - (ih*60+im);
+    const [ih,im]=today.inTime.split(':').map(Number), [oh,om]=today.outTime.split(':').map(Number);
+    const mins=(oh*60+om)-(ih*60+im);
     dur.textContent = `${Math.floor(mins/60)}시간 ${mins%60}분`;
   } else dur.textContent = '—';
-
   if (today.distance) {
-    document.getElementById('distVal').textContent = today.distance.toFixed(2);
-    document.getElementById('mapDist').textContent = today.distance.toFixed(2) + ' km';
+    document.getElementById('distVal').textContent = today.distance.toFixed(1);
+    document.getElementById('mapDist').textContent = today.distance.toFixed(1) + ' km';
     updateFuel();
   }
 }
 function renderStats() {
-  const now = new Date(), ws = new Date(now);
-  ws.setDate(now.getDate() - now.getDay() + 1); ws.setHours(0,0,0,0);
-  document.getElementById('weekDays').textContent = history.filter(h => new Date(h.date) >= ws).length;
+  const now=new Date(), ws=new Date(now);
+  ws.setDate(now.getDate()-now.getDay()+1); ws.setHours(0,0,0,0);
+  document.getElementById('weekDays').textContent = history.filter(h=>new Date(h.date)>=ws).length;
   updateMonthFuel();
 }
 function renderMonthTabs() {
-  const months = [...new Set(history.map(h => new Date(h.date).getMonth()))];
+  const months=[...new Set(history.map(h=>new Date(h.date).getMonth()))];
   if (!months.includes(new Date().getMonth())) months.unshift(new Date().getMonth());
-  months.sort((a,b) => b-a);
-  document.getElementById('monthTabs').innerHTML = months.slice(0,3).map(m =>
+  months.sort((a,b)=>b-a);
+  document.getElementById('monthTabs').innerHTML = months.slice(0,3).map(m=>
     `<button class="month-tab ${m===currentMonth?'active':''}" onclick="switchMonth(${m})">${m+1}월</button>`
   ).join('');
 }
-function switchMonth(m) { currentMonth = m; renderMonthTabs(); renderHistory(); }
+function switchMonth(m) { currentMonth=m; renderMonthTabs(); renderHistory(); }
 function renderHistory() {
   const el = document.getElementById('historyList');
-  const list = history.filter(h => new Date(h.date).getMonth() === currentMonth);
+  const list = history.filter(h=>new Date(h.date).getMonth()===currentMonth);
   if (!list.length) {
-    el.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>이 달의 기록이 없습니다</div>'; return;
+    el.innerHTML='<div class="empty-state"><span class="empty-icon">📭</span>이 달의 기록이 없습니다</div>'; return;
   }
-  const dn = ['일','월','화','수','목','금','토'];
+  const dn=['일','월','화','수','목','금','토'];
   el.innerHTML = list.map(h => {
-    const d = new Date(h.date);
-    let dur = '—';
+    const d=new Date(h.date);
+    let dur='—';
     if (h.inTime && h.outTime) {
       const [ih,im]=h.inTime.split(':').map(Number),[oh,om]=h.outTime.split(':').map(Number);
       const m=(oh*60+om)-(ih*60+im); dur=`${Math.floor(m/60)}h ${m%60}m`;
@@ -591,7 +579,7 @@ function renderHistory() {
         <div class="h-dur">${dur}</div>
       </div>
       <div class="h-right">
-        <div class="h-dist">${h.distance ? h.distance.toFixed(2)+' km' : '—'}</div>
+        <div class="h-dist">${h.distance ? h.distance.toFixed(1)+' km' : '—'}</div>
         <div class="h-fuel">${h.distance ? '⛽ '+calcCost(h.distance).toLocaleString()+'원' : ''}</div>
       </div>
     </div>`;
@@ -600,45 +588,32 @@ function renderHistory() {
 
 function saveToday()   { localStorage.setItem('commuteToday',   JSON.stringify(today)); }
 function saveHistory() { localStorage.setItem('commuteHistory', JSON.stringify(history)); }
-
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-// ─── Init ──────────────────────────────
+// ── 초기화 ──────────────────────────────
 function init() {
   document.getElementById('todayDate').textContent =
-    new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+    new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
   loadFuel();
+  initMap();
 
   const saved = localStorage.getItem('commuteToday');
   if (saved) {
     const p = JSON.parse(saved);
     if (p.date === todayKey()) {
       today = p;
-      if (p.inTime && !p.outTime) {
-        // 출근 중 재진입 → GPS 재시작
-        setTimeout(startGPS, 500);
-      } else {
-        // 퇴근 완료 or 미출근 → 현재 위치만 표시
-        setTimeout(startGPS, 500);
-      }
     } else {
-      if (p.inTime && !history.find(h => h.date === p.date)) { history.unshift(p); saveHistory(); }
-      today = {date: todayKey()}; saveToday();
-      setTimeout(startGPS, 500);
+      if (p.inTime && !history.find(h=>h.date===p.date)) { history.unshift(p); saveHistory(); }
+      today = {date:todayKey()}; saveToday();
     }
-  } else {
-    today = {date: todayKey()};
-    setTimeout(startGPS, 500);
-  }
+  } else { today = {date:todayKey()}; }
 
   renderToday(); renderStats(); renderMonthTabs(); renderHistory();
-
-  // 지도 크기 강제 재계산 (레이아웃 완료 후)
-  setTimeout(() => map.invalidateSize(), 300);
+  setTimeout(startGPS, 600);
 }
 
 init();
