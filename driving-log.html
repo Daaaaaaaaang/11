@@ -6,7 +6,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
 <title>주행 로그</title>
+<script>
+if ('serviceWorker' in navigator) {
+  const sw = `const CACHE='driving-log-v1';const ASSETS=['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js','https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css','https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('',{status:503}))));});`;
+  const blob = new Blob([sw], {type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -89,6 +97,30 @@
   }
   .nav-btn.active { color: var(--accent); }
   .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+  /* ── Background Status Bar ── */
+  #bg-bar {
+    display: none; margin: 8px 12px 0;
+    border-radius: var(--r); padding: 10px 14px;
+    font-size: 12px; align-items: center; gap: 8px;
+    border: 1px solid; transition: all 0.25s;
+  }
+  #bg-bar.ok { background: var(--accent-dim); border-color: var(--accent-dim2); color: var(--accent); }
+  #bg-bar.warn { background: var(--amber-dim); border-color: rgba(255,179,64,0.3); color: var(--amber); }
+  #bg-bar.err { background: var(--red-dim); border-color: rgba(255,92,92,0.3); color: var(--red); }
+  #bg-bar.show { display: flex; }
+  .bg-bar-icon { font-size: 15px; flex-shrink: 0; }
+  .bg-bar-text { flex: 1; line-height: 1.4; }
+  .bg-bar-btn { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; white-space: nowrap; font-family: var(--sans); }
+
+  /* ── Checkpoint badge ── */
+  #checkpoint-badge {
+    position: absolute; bottom: 10px; right: 10px; z-index: 999;
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 7px; padding: 4px 9px; font-size: 10px;
+    font-family: var(--mono); color: var(--text3); display: none;
+    opacity: 0.85;
+  }
 
   /* ── Theme Toggle ── */
   #theme-toggle {
@@ -315,6 +347,13 @@
           <div class="dot" id="gps-dot"></div>
           <span id="gps-label" style="font-size:11px">GPS 대기</span>
         </div>
+        <div id="checkpoint-badge">💾 저장됨</div>
+      </div>
+
+      <div id="bg-bar">
+        <span class="bg-bar-icon" id="bg-icon">🔒</span>
+        <span class="bg-bar-text" id="bg-text"></span>
+        <button class="bg-bar-btn" id="bg-btn" onclick="bgBtnAction()" style="display:none"></button>
       </div>
 
       <div class="live-grid">
@@ -464,6 +503,9 @@ let pendingTrip = null;
 let sortMode = 'date-desc';
 let effChart = null, distChart = null;
 let allRouteLines = [];
+let wakeLock = null;
+let checkpointInterval = null;
+let bgHiddenAt = null;
 
 function saveDB() { localStorage.setItem('driving_log_v1', JSON.stringify(trips)); }
 
@@ -509,6 +551,7 @@ function startTracking() {
   document.getElementById('live-speed').textContent = '—';
   document.getElementById('live-time').textContent = '00:00';
   document.getElementById('btn-save').style.display = 'none';
+  clearCheckpoint();
 
   setGPSStatus('searching');
   watchId = navigator.geolocation.watchPosition(onPos, onPosErr, {
@@ -520,6 +563,15 @@ function startTracking() {
   document.getElementById('btn-start').style.display = 'none';
   document.getElementById('btn-stop').style.display = 'flex';
   document.getElementById('perm-notice').style.display = 'none';
+
+  // Wake Lock 요청
+  requestWakeLock();
+  // 10초마다 체크포인트 저장
+  checkpointInterval = setInterval(saveCheckpoint, 10000);
+  // 알림 권한 요청
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 }
 
 function onPos(pos) {
@@ -563,7 +615,10 @@ function onPosErr(err) {
 function stopTracking() {
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
   clearInterval(timerInterval);
+  clearInterval(checkpointInterval);
   isTracking = false;
+  releaseWakeLock();
+  hideBgBar();
   setGPSStatus('off');
   document.getElementById('btn-start').style.display = 'flex';
   document.getElementById('btn-stop').style.display = 'none';
@@ -580,6 +635,7 @@ function stopTracking() {
   } else {
     showToast('경로 데이터가 부족합니다');
   }
+  clearCheckpoint();
 }
 
 function setGPSStatus(state, sub) {
@@ -799,6 +855,133 @@ function renderCharts() {
   });
 }
 
+// ── Wake Lock ──
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) {
+    showBgBar('warn', '🔆', '화면 잠금 미지원 브라우저입니다. 화면이 꺼지면 GPS가 중단될 수 있어요.', null, null);
+    return;
+  }
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => {
+      // 화면이 꺼지거나 탭 전환 시 자동 해제됨 → 재획득 시도
+      if (isTracking) reacquireWakeLock();
+    });
+    showBgBar('ok', '🔒', '화면 켜짐 유지 중 — GPS가 백그라운드에서도 계속 기록됩니다.', null, null);
+  } catch (e) {
+    showBgBar('warn', '⚠️', '화면 잠금 실패. 화면이 꺼지지 않도록 주의해주세요.', null, null);
+  }
+}
+
+async function reacquireWakeLock() {
+  if (!isTracking) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { if (isTracking) reacquireWakeLock(); });
+  } catch(e) {}
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release().catch(()=>{}); wakeLock = null; }
+}
+
+// ── Checkpoint (경로 자동 저장) ──
+function saveCheckpoint() {
+  if (!isTracking || !trackPoints.length) return;
+  localStorage.setItem('track_checkpoint', JSON.stringify({
+    points: trackPoints,
+    dist: totalDist,
+    startTime: trackStartTime,
+    savedAt: Date.now()
+  }));
+  const badge = document.getElementById('checkpoint-badge');
+  badge.style.display = 'block';
+  const now = new Date();
+  badge.textContent = `💾 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 저장`;
+}
+
+function clearCheckpoint() {
+  localStorage.removeItem('track_checkpoint');
+  document.getElementById('checkpoint-badge').style.display = 'none';
+}
+
+function restoreCheckpoint() {
+  const raw = localStorage.getItem('track_checkpoint');
+  if (!raw) return false;
+  try {
+    const cp = JSON.parse(raw);
+    const age = (Date.now() - cp.savedAt) / 1000 / 60;
+    if (age > 120) { clearCheckpoint(); return false; } // 2시간 초과 무시
+    trackPoints = cp.points;
+    totalDist = cp.dist;
+    trackStartTime = cp.startTime;
+    document.getElementById('live-dist').textContent = totalDist.toFixed(2);
+    document.getElementById('live-pts').textContent = trackPoints.length;
+    if (map && trackPoints.length > 1) {
+      trackPolyline = L.polyline(trackPoints, { color:'#4d9fff', weight:4, opacity:0.9 }).addTo(map);
+      startMarker = L.circleMarker(trackPoints[0], { radius:8, color:'#3ecf8e', fillColor:'#3ecf8e', fillOpacity:1, weight:2 }).addTo(map).bindPopup('출발');
+      map.fitBounds(trackPolyline.getBounds().pad(0.15));
+    }
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── Background Bar ──
+function showBgBar(type, icon, text, btnLabel, btnFn) {
+  const bar = document.getElementById('bg-bar');
+  bar.className = 'bg-bar show ' + type;
+  document.getElementById('bg-icon').textContent = icon;
+  document.getElementById('bg-text').textContent = text;
+  const btn = document.getElementById('bg-btn');
+  if (btnLabel) { btn.textContent = btnLabel; btn.style.display = 'inline-block'; btn._fn = btnFn; }
+  else { btn.style.display = 'none'; }
+}
+
+function hideBgBar() {
+  document.getElementById('bg-bar').className = 'bg-bar';
+}
+
+function bgBtnAction() {
+  const btn = document.getElementById('bg-btn');
+  if (btn._fn) btn._fn();
+}
+
+// ── Page Visibility (백그라운드 감지) ──
+document.addEventListener('visibilitychange', () => {
+  if (!isTracking) return;
+  if (document.hidden) {
+    bgHiddenAt = Date.now();
+    saveCheckpoint();
+    // 알림 발송 (권한 있을 때)
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('주행 로그 — 추적 중', {
+        body: `${totalDist.toFixed(2)}km 기록됨. 앱을 닫지 마세요.`,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="52" font-size="52">🚗</text></svg>',
+        tag: 'driving-bg',
+        renotify: false,
+        silent: true
+      });
+    }
+  } else {
+    // 복귀 시
+    if (bgHiddenAt) {
+      const away = Math.round((Date.now() - bgHiddenAt) / 1000);
+      bgHiddenAt = null;
+      if (away > 5) {
+        const hasWL = wakeLock && !wakeLock.released;
+        if (!hasWL) {
+          showBgBar('warn', '⚠️', `${away}초간 백그라운드 상태였어요. 일부 경로가 누락됐을 수 있습니다.`, '계속 추적', () => { hideBgBar(); reacquireWakeLock(); });
+        } else {
+          showBgBar('ok', '✓', `${away}초간 백그라운드에서도 추적이 유지됐습니다.`, null, null);
+          setTimeout(hideBgBar, 4000);
+        }
+      }
+    }
+    // Wake Lock 재획득 (탭 전환 복귀 시 자동 해제됐을 수 있음)
+    if (isTracking && (!wakeLock || wakeLock.released)) reacquireWakeLock();
+  }
+});
+
 // ── Theme ──
 function updateMapFilter() {
   const mapEl = document.getElementById('map');
@@ -834,6 +1017,35 @@ if (savedTheme === 'light') {
   document.getElementById('theme-toggle').textContent = '☀️';
 }
 initMap();
+
+// 이전 체크포인트 복원 여부 확인
+const cp = localStorage.getItem('track_checkpoint');
+if (cp) {
+  try {
+    const d = JSON.parse(cp);
+    const age = Math.round((Date.now() - d.savedAt) / 1000 / 60);
+    if (age <= 120 && d.points && d.points.length > 1) {
+      showBgBar('warn', '🔄',
+        `이전 주행 기록이 있습니다 (${d.points.length}개 지점 · ${age}분 전). 이어서 기록할까요?`,
+        '복원하기',
+        () => {
+          hideBgBar();
+          if (restoreCheckpoint()) {
+            // GPS 재시작
+            watchId = navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy: true, maximumAge: 1500, timeout: 15000 });
+            timerInterval = setInterval(tickTimer, 1000);
+            checkpointInterval = setInterval(saveCheckpoint, 10000);
+            isTracking = true;
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'flex';
+            requestWakeLock();
+            showToast('✓ 이전 경로를 복원했습니다');
+          }
+        }
+      );
+    } else { clearCheckpoint(); }
+  } catch(e) { clearCheckpoint(); }
+}
 </script>
 </body>
 </html>
