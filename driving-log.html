@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>주행 로그</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f8;
+    --text2: #8888aa;
+    --text3: #55556a;
+    --accent: #3ecf8e;
+    --accent-dim: rgba(62,207,142,0.12);
+    --accent-dim2: rgba(62,207,142,0.22);
+    --blue: #4d9fff;
+    --blue-dim: rgba(77,159,255,0.12);
+    --red: #ff5c5c;
+    --red-dim: rgba(255,92,92,0.12);
+    --amber: #ffb340;
+    --amber-dim: rgba(255,179,64,0.12);
+    --mono: 'DM Mono', monospace;
+    --sans: 'Pretendard', -apple-system, sans-serif;
+    --r: 12px;
+    --r2: 18px;
+    --nav-h: 68px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
+
+  /* ── App Shell ── */
+  #app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
+  #content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px); }
+
+  /* ── Bottom Nav ── */
+  #nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: calc(var(--nav-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: stretch; z-index: 1000;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; background: none; border: none; cursor: pointer;
+    color: var(--text3); font-family: var(--sans); font-size: 10px; font-weight: 500;
+    transition: color 0.2s; padding: 8px 4px;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Typography ── */
+  .mono { font-family: var(--mono); }
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 0 16px; margin: 20px 0 10px; }
+
+  /* ── Cards ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); margin: 0 12px 10px; padding: 16px; }
+  .card-sm { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); margin: 0 12px 8px; padding: 13px 15px; }
+
+  /* ══════════════════════════════
+     TRACKING PANEL
+  ══════════════════════════════ */
+  #map-wrap { position: relative; height: 55vw; min-height: 220px; max-height: 340px; margin: 12px 12px 0; border-radius: var(--r2); overflow: hidden; border: 1px solid var(--border); }
+  #map { width: 100%; height: 100%; }
+
+  /* Map overlay badge */
+  .map-badge {
+    position: absolute; top: 10px; left: 10px; z-index: 999;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(10px);
+    border: 1px solid var(--border2); border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; font-family: var(--mono);
+    color: var(--text2); display: flex; align-items: center; gap: 6px;
+  }
+  .map-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); }
+  .map-badge .dot.on { background: var(--accent); animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* Live stat row */
+  .live-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 12px 0; }
+  .live-cell {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 13px 14px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .live-label { font-size: 11px; color: var(--text3); font-weight: 500; }
+  .live-val { font-family: var(--mono); font-size: 26px; font-weight: 500; color: var(--text); line-height: 1; }
+  .live-val.accent { color: var(--accent); }
+  .live-unit { font-size: 11px; color: var(--text3); }
+
+  /* Main CTA */
+  .track-cta { margin: 10px 12px 0; }
+  .btn-start {
+    width: 100%; padding: 18px; background: var(--accent); color: #0a0a0f;
+    border: none; border-radius: var(--r2); font-family: var(--sans); font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    -webkit-appearance: none;
+  }
+  .btn-start:active { transform: scale(0.98); }
+  .btn-stop {
+    width: 100%; padding: 18px; background: var(--red-dim); color: var(--red);
+    border: 1px solid rgba(255,92,92,0.3); border-radius: var(--r2);
+    font-family: var(--sans); font-size: 16px; font-weight: 600;
+    cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px;
+    -webkit-appearance: none;
+  }
+  .btn-stop:active { transform: scale(0.98); }
+  .btn-save {
+    width: 100%; margin-top: 8px; padding: 16px;
+    background: var(--blue-dim); color: var(--blue);
+    border: 1px solid rgba(77,159,255,0.3); border-radius: var(--r2);
+    font-family: var(--sans); font-size: 15px; font-weight: 600;
+    cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px;
+    -webkit-appearance: none;
+  }
+  .btn-save:active { transform: scale(0.98); }
+
+  /* Permission notice */
+  .notice {
+    margin: 8px 12px 0; padding: 12px 14px; border-radius: var(--r);
+    background: var(--amber-dim); border: 1px solid rgba(255,179,64,0.25);
+    font-size: 13px; color: var(--amber); display: none; line-height: 1.5;
+  }
+
+  /* ── Bottom Sheet / Save Form ── */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); z-index: 2000; align-items: flex-end;
+  }
+  .sheet-overlay.open { display: flex; }
+  .sheet {
+    width: 100%; background: var(--bg2);
+    border-radius: 20px 20px 0 0; border-top: 1px solid var(--border2);
+    padding: 0 0 calc(24px + var(--safe-bottom));
+    max-height: 90dvh; overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .sheet-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; }
+  .sheet-title { font-size: 16px; font-weight: 600; padding: 16px 20px 0; }
+  .sheet-body { padding: 16px 20px 0; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 500; }
+  .field input, .field textarea, .field select {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--r); color: var(--text); font-family: var(--sans); font-size: 15px;
+    padding: 12px 14px; -webkit-appearance: none; outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: none; height: 72px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .eff-banner {
+    background: var(--accent-dim); border: 1px solid var(--accent-dim2);
+    border-radius: var(--r); padding: 14px; margin-bottom: 14px;
+    display: none; align-items: center; justify-content: space-between;
+  }
+  .eff-banner.show { display: flex; }
+  .eff-big { font-family: var(--mono); font-size: 24px; color: var(--accent); }
+  .eff-lbl { font-size: 11px; color: var(--text3); }
+  .cost-big { font-family: var(--mono); font-size: 18px; color: var(--text); }
+  .btn-confirm {
+    width: 100%; padding: 17px; background: var(--accent); color: #0a0a0f;
+    border: none; border-radius: var(--r2); font-family: var(--sans);
+    font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 4px;
+    -webkit-appearance: none;
+  }
+  .btn-confirm:active { transform: scale(0.98); }
+
+  /* ══════════════════════════════
+     HISTORY PANEL
+  ══════════════════════════════ */
+  .sort-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; overflow-x: auto; scrollbar-width: none; }
+  .sort-bar::-webkit-scrollbar { display: none; }
+  .sort-chip {
+    white-space: nowrap; padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border2); color: var(--text2); background: transparent; cursor: pointer;
+    transition: all 0.15s; -webkit-appearance: none;
+  }
+  .sort-chip.active { background: var(--accent-dim2); border-color: var(--accent); color: var(--accent); }
+
+  .trip-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2);
+    margin: 0 12px 10px; padding: 16px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .trip-card:active { border-color: var(--border2); }
+  .trip-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .trip-route { font-size: 15px; font-weight: 600; color: var(--text); }
+  .trip-date { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .trip-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta-chip {
+    background: var(--bg3); border-radius: 6px; padding: 5px 9px;
+    font-size: 12px; font-family: var(--mono); color: var(--text2);
+  }
+  .meta-chip.hi { background: rgba(62,207,142,0.1); color: var(--accent); }
+  .meta-chip.lo { background: rgba(255,179,64,0.1); color: var(--amber); }
+  .meta-chip.md { background: rgba(77,159,255,0.1); color: var(--blue); }
+  .trip-note { font-size: 12px; color: var(--text3); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .trip-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .trip-act-btn {
+    flex: 1; padding: 9px; border-radius: var(--r); font-size: 13px; font-weight: 500;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+    cursor: pointer; -webkit-appearance: none;
+  }
+  .trip-act-btn:active { background: var(--border); }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--text3); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+
+  /* ══════════════════════════════
+     STATS PANEL
+  ══════════════════════════════ */
+  .stats-hero { margin: 12px 12px 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 20px 16px; }
+  .stats-hero-label { font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .stats-hero-val { font-family: var(--mono); font-size: 42px; font-weight: 500; color: var(--accent); line-height: 1; }
+  .stats-hero-unit { font-size: 16px; color: var(--text3); margin-left: 4px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 12px 0; }
+  .stats-cell { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; }
+  .stats-cell-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+  .stats-cell-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text); }
+  .stats-cell-unit { font-size: 11px; color: var(--text3); }
+  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); margin: 8px 12px 0; padding: 16px; }
+  .chart-card-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 14px; }
+  canvas { max-height: 180px; }
+
+  /* Leaflet overrides */
+  .leaflet-control-attribution { font-size: 9px !important; }
+  .leaflet-control-zoom { border: 1px solid var(--border2) !important; }
+  .leaflet-control-zoom a { background: var(--bg2) !important; color: var(--text) !important; border-color: var(--border) !important; }
+  .leaflet-popup-content-wrapper { background: var(--bg2); color: var(--text); border: 1px solid var(--border2); box-shadow: none; border-radius: var(--r) !important; }
+  .leaflet-popup-tip { background: var(--bg2); }
+  .leaflet-popup-content { font-family: var(--sans); font-size: 13px; margin: 10px 14px !important; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px);
+    left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 10px 18px; font-size: 13px; font-weight: 500;
+    color: var(--text); white-space: nowrap; z-index: 3000;
+    opacity: 0; transition: all 0.25s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="content">
+
+    <!-- ════ TRACKING PANEL ════ -->
+    <div id="panel-track" class="panel active">
+      <div style="height:12px"></div>
+
+      <div id="map-wrap">
+        <div id="map"></div>
+        <div class="map-badge">
+          <div class="dot" id="gps-dot"></div>
+          <span id="gps-label" style="font-size:11px">GPS 대기</span>
+        </div>
+      </div>
+
+      <div class="live-grid">
+        <div class="live-cell">
+          <div class="live-label">주행 거리</div>
+          <div class="live-val accent mono" id="live-dist">0.00</div>
+          <div class="live-unit">km</div>
+        </div>
+        <div class="live-cell">
+          <div class="live-label">소요 시간</div>
+          <div class="live-val mono" id="live-time">00:00</div>
+          <div class="live-unit">h · m · s</div>
+        </div>
+        <div class="live-cell">
+          <div class="live-label">현재 속도</div>
+          <div class="live-val mono" id="live-speed">—</div>
+          <div class="live-unit">km/h</div>
+        </div>
+        <div class="live-cell">
+          <div class="live-label">기록 지점</div>
+          <div class="live-val mono" id="live-pts">0</div>
+          <div class="live-unit">pts</div>
+        </div>
+      </div>
+
+      <div class="notice" id="perm-notice">
+        ⚠️ 위치 권한이 필요합니다. 브라우저에서 위치 접근을 허용해주세요.
+      </div>
+
+      <div class="track-cta">
+        <button class="btn-start" id="btn-start" onclick="startTracking()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg>
+          주행 시작
+        </button>
+        <button class="btn-stop" id="btn-stop" onclick="stopTracking()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor" stroke="none"/></svg>
+          주행 종료
+        </button>
+        <button class="btn-save" id="btn-save" onclick="openSheet()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          이 경로 저장하기
+        </button>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+
+    <!-- ════ HISTORY PANEL ════ -->
+    <div id="panel-history" class="panel">
+      <div class="sort-bar">
+        <button class="sort-chip active" data-sort="date-desc" onclick="setSort(this)">최신순</button>
+        <button class="sort-chip" data-sort="date-asc" onclick="setSort(this)">오래된순</button>
+        <button class="sort-chip" data-sort="dist-desc" onclick="setSort(this)">거리순</button>
+        <button class="sort-chip" data-sort="eff-desc" onclick="setSort(this)">연비순</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- ════ STATS PANEL ════ -->
+    <div id="panel-stats" class="panel">
+      <div style="height:12px"></div>
+      <div class="stats-hero">
+        <div class="stats-hero-label">총 주행 거리</div>
+        <div><span class="stats-hero-val mono" id="s-dist">0</span><span class="stats-hero-unit">km</span></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stats-cell"><div class="stats-cell-label">총 주행 횟수</div><div class="stats-cell-val" id="s-trips">0</div><div class="stats-cell-unit">회</div></div>
+        <div class="stats-cell"><div class="stats-cell-label">평균 연비</div><div class="stats-cell-val" id="s-eff">—</div><div class="stats-cell-unit">km/L</div></div>
+        <div class="stats-cell"><div class="stats-cell-label">총 연료 소비</div><div class="stats-cell-val" id="s-fuel">0</div><div class="stats-cell-unit">L</div></div>
+        <div class="stats-cell"><div class="stats-cell-label">총 연료비</div><div class="stats-cell-val" id="s-cost">0</div><div class="stats-cell-unit">원</div></div>
+        <div class="stats-cell"><div class="stats-cell-label">총 주행 시간</div><div class="stats-cell-val" id="s-time">0</div><div class="stats-cell-unit">분</div></div>
+        <div class="stats-cell"><div class="stats-cell-label">경로 저장 수</div><div class="stats-cell-val" id="s-routes">0</div><div class="stats-cell-unit">건</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">최근 연비 추이</div>
+        <canvas id="eff-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">월별 주행 거리</div>
+        <canvas id="dist-chart"></canvas>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ── Bottom Nav ── -->
+  <nav id="nav">
+    <button class="nav-btn active" id="nav-track" onclick="switchPanel('track')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+      GPS 추적
+    </button>
+    <button class="nav-btn" id="nav-history" onclick="switchPanel('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 14l2 2 4-4"/></svg>
+      기록 보관함
+    </button>
+    <button class="nav-btn" id="nav-stats" onclick="switchPanel('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      통계
+    </button>
+  </nav>
+</div>
+
+<!-- ── Save Bottom Sheet ── -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeSheetOutside(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">주행 기록 저장</div>
+    <div class="sheet-body">
+      <div class="field-row" style="margin-bottom:14px">
+        <div class="field" style="margin:0"><label>출발지</label><input id="sf-from" type="text" placeholder="출발지 입력"></div>
+        <div class="field" style="margin:0"><label>도착지</label><input id="sf-to" type="text" placeholder="도착지 입력"></div>
+      </div>
+      <div class="field-row" style="margin-bottom:14px">
+        <div class="field" style="margin:0"><label>사용 연료 (L)</label><input id="sf-fuel" type="number" inputmode="decimal" placeholder="0.0" min="0" step="0.1" oninput="calcEff()"></div>
+        <div class="field" style="margin:0"><label>연료 단가 (원/L)</label><input id="sf-price" type="number" inputmode="numeric" placeholder="1750" min="0" oninput="calcEff()"></div>
+      </div>
+      <div class="eff-banner" id="eff-banner">
+        <div>
+          <div class="eff-lbl">연비</div>
+          <div class="eff-big"><span id="eff-val">—</span> <span style="font-size:14px;color:var(--text3)">km/L</span></div>
+        </div>
+        <div style="text-align:right">
+          <div class="eff-lbl">연료비</div>
+          <div class="cost-big"><span id="cost-val">—</span> <span style="font-size:12px;color:var(--text3)">원</span></div>
+        </div>
+      </div>
+      <div class="field"><label>메모</label><textarea id="sf-notes" placeholder="도로 상황, 날씨, 목적 등..."></textarea></div>
+      <button class="btn-confirm" onclick="confirmSave()">저장 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ── State ──
+let trips = JSON.parse(localStorage.getItem('driving_log_v1') || '[]');
+let map = null, watchId = null, isTracking = false;
+let trackPoints = [], trackPolyline = null;
+let currentMarker = null, startMarker = null;
+let trackStartTime = null, timerInterval = null;
+let totalDist = 0;
+let pendingTrip = null;
+let sortMode = 'date-desc';
+let effChart = null, distChart = null;
+let allRouteLines = [];
+
+function saveDB() { localStorage.setItem('driving_log_v1', JSON.stringify(trips)); }
+
+// ── Panel switching ──
+function switchPanel(name) {
+  ['track','history','stats'].forEach(n => {
+    document.getElementById('panel-'+n).classList.toggle('active', n === name);
+    document.getElementById('nav-'+n).classList.toggle('active', n === name);
+  });
+  if (name === 'track' && !map) initMap();
+  if (name === 'history') renderHistory();
+  if (name === 'stats') renderStats();
+}
+
+// ── Map ──
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([37.5665, 126.9780], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19
+  }).addTo(map);
+  // Dark tile filter
+  const mapEl = document.getElementById('map');
+  mapEl.style.filter = 'invert(1) hue-rotate(180deg) brightness(0.85)';
+}
+
+// ── GPS ──
+function haversine(a, b) {
+  const R = 6371;
+  const dLat = (b[0]-a[0]) * Math.PI/180;
+  const dLon = (b[1]-a[1]) * Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+}
+
+function startTracking() {
+  if (!navigator.geolocation) { showToast('⚠️ 위치 서비스 미지원 브라우저'); return; }
+  if (!map) initMap();
+  // reset
+  trackPoints = []; totalDist = 0;
+  [trackPolyline, currentMarker, startMarker].forEach(l => { if (l) map.removeLayer(l); });
+  trackPolyline = currentMarker = startMarker = null;
+  allRouteLines.forEach(l => map.removeLayer(l)); allRouteLines = [];
+  document.getElementById('live-dist').textContent = '0.00';
+  document.getElementById('live-pts').textContent = '0';
+  document.getElementById('live-speed').textContent = '—';
+  document.getElementById('live-time').textContent = '00:00';
+  document.getElementById('btn-save').style.display = 'none';
+
+  setGPSStatus('searching');
+  watchId = navigator.geolocation.watchPosition(onPos, onPosErr, {
+    enableHighAccuracy: true, maximumAge: 1500, timeout: 15000
+  });
+  trackStartTime = Date.now();
+  timerInterval = setInterval(tickTimer, 1000);
+  isTracking = true;
+  document.getElementById('btn-start').style.display = 'none';
+  document.getElementById('btn-stop').style.display = 'flex';
+  document.getElementById('perm-notice').style.display = 'none';
+}
+
+function onPos(pos) {
+  const { latitude: lat, longitude: lng, speed, accuracy } = pos.coords;
+  const pt = [lat, lng];
+  setGPSStatus('active', `±${Math.round(accuracy)}m`);
+
+  if (speed !== null) document.getElementById('live-speed').textContent = Math.round(speed * 3.6);
+
+  if (trackPoints.length > 0) {
+    const d = haversine(trackPoints[trackPoints.length-1], pt);
+    if (d < 0.005) return; // ignore < 5m
+    totalDist += d;
+    document.getElementById('live-dist').textContent = totalDist.toFixed(2);
+  }
+
+  trackPoints.push(pt);
+  document.getElementById('live-pts').textContent = trackPoints.length;
+
+  if (trackPoints.length === 1) {
+    startMarker = L.circleMarker([lat,lng], { radius:8, color:'#3ecf8e', fillColor:'#3ecf8e', fillOpacity:1, weight:2 }).addTo(map).bindPopup('출발');
+  }
+  if (currentMarker) map.removeLayer(currentMarker);
+  currentMarker = L.circleMarker([lat,lng], { radius:9, color:'#4d9fff', fillColor:'#0a0a0f', fillOpacity:1, weight:3 }).addTo(map);
+
+  if (trackPolyline) map.removeLayer(trackPolyline);
+  if (trackPoints.length > 1) trackPolyline = L.polyline(trackPoints, { color:'#4d9fff', weight:4, opacity:0.9 }).addTo(map);
+  map.panTo([lat, lng]);
+}
+
+function onPosErr(err) {
+  if (err.code === 1) {
+    setGPSStatus('error');
+    document.getElementById('perm-notice').style.display = 'block';
+    stopTracking();
+  } else {
+    setGPSStatus('error', '신호 없음');
+  }
+}
+
+function stopTracking() {
+  if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  clearInterval(timerInterval);
+  isTracking = false;
+  setGPSStatus('off');
+  document.getElementById('btn-start').style.display = 'flex';
+  document.getElementById('btn-stop').style.display = 'none';
+
+  if (trackPoints.length > 1) {
+    if (currentMarker) {
+      map.removeLayer(currentMarker);
+      const last = trackPoints[trackPoints.length-1];
+      L.circleMarker(last, { radius:8, color:'#ff5c5c', fillColor:'#ff5c5c', fillOpacity:1, weight:2 }).addTo(map).bindPopup('도착');
+      currentMarker = null;
+    }
+    if (trackPolyline) map.fitBounds(trackPolyline.getBounds().pad(0.15));
+    document.getElementById('btn-save').style.display = 'flex';
+  } else {
+    showToast('경로 데이터가 부족합니다');
+  }
+}
+
+function setGPSStatus(state, sub) {
+  const dot = document.getElementById('gps-dot');
+  const lbl = document.getElementById('gps-label');
+  dot.className = 'dot';
+  if (state === 'active') { dot.classList.add('on'); lbl.textContent = `추적 중 ${sub||''}`; }
+  else if (state === 'searching') { lbl.textContent = '신호 탐색 중...'; }
+  else if (state === 'error') { dot.style.background = 'var(--red)'; lbl.textContent = '위치 오류'; }
+  else { lbl.textContent = 'GPS 대기'; }
+}
+
+function tickTimer() {
+  if (!trackStartTime) return;
+  const s = Math.floor((Date.now()-trackStartTime)/1000);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  document.getElementById('live-time').textContent = h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+    : `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+// ── Sheet ──
+function openSheet() {
+  pendingTrip = {
+    points: [...trackPoints], distance: parseFloat(totalDist.toFixed(2)),
+    duration: trackStartTime ? Math.floor((Date.now()-trackStartTime)/60000) : 0,
+    startTime: new Date(trackStartTime), endTime: new Date()
+  };
+  ['sf-from','sf-to','sf-fuel','sf-price','sf-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('eff-banner').classList.remove('show');
+  document.getElementById('sheet-overlay').classList.add('open');
+}
+
+function closeSheetOutside(e) {
+  if (e.target === document.getElementById('sheet-overlay')) document.getElementById('sheet-overlay').classList.remove('open');
+}
+
+function calcEff() {
+  if (!pendingTrip) return;
+  const fuel = parseFloat(document.getElementById('sf-fuel').value);
+  const price = parseFloat(document.getElementById('sf-price').value) || 0;
+  const banner = document.getElementById('eff-banner');
+  if (fuel > 0 && pendingTrip.distance > 0) {
+    document.getElementById('eff-val').textContent = (pendingTrip.distance/fuel).toFixed(1);
+    document.getElementById('cost-val').textContent = price > 0 ? Math.round(fuel*price).toLocaleString() : '—';
+    banner.classList.add('show');
+  } else { banner.classList.remove('show'); }
+}
+
+function confirmSave() {
+  if (!pendingTrip) return;
+  const from = document.getElementById('sf-from').value.trim() || '출발지';
+  const to = document.getElementById('sf-to').value.trim() || '도착지';
+  const fuel = parseFloat(document.getElementById('sf-fuel').value) || 0;
+  const price = parseFloat(document.getElementById('sf-price').value) || 0;
+  const eff = (fuel > 0 && pendingTrip.distance > 0) ? parseFloat((pendingTrip.distance/fuel).toFixed(2)) : 0;
+  const trip = {
+    id: Date.now().toString(),
+    from, to,
+    date: pendingTrip.startTime.toISOString().slice(0,10),
+    departureTime: pendingTrip.startTime.toTimeString().slice(0,5),
+    arrivalTime: pendingTrip.endTime.toTimeString().slice(0,5),
+    distance: pendingTrip.distance,
+    duration: pendingTrip.duration,
+    fuel, fuelPrice: price, efficiency: eff,
+    fuelCost: (fuel > 0 && price > 0) ? Math.round(fuel*price) : 0,
+    notes: document.getElementById('sf-notes').value.trim(),
+    route: pendingTrip.points
+  };
+  trips.unshift(trip);
+  saveDB();
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.getElementById('btn-save').style.display = 'none';
+  pendingTrip = null;
+  showToast(`✓ ${from} → ${to} 저장 완료`);
+}
+
+// ── History ──
+let currentSort = 'date-desc';
+function setSort(el) {
+  document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentSort = el.dataset.sort;
+  renderHistory();
+}
+
+function renderHistory() {
+  let sorted = [...trips];
+  if (currentSort === 'date-asc') sorted.sort((a,b) => a.date.localeCompare(b.date));
+  else if (currentSort === 'dist-desc') sorted.sort((a,b) => b.distance - a.distance);
+  else if (currentSort === 'eff-desc') sorted.sort((a,b) => b.efficiency - a.efficiency);
+  else sorted.sort((a,b) => b.date.localeCompare(a.date));
+
+  const el = document.getElementById('history-list');
+  if (!sorted.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>아직 기록이 없습니다.<br>GPS 추적으로 첫 주행을 시작해보세요!</p></div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(t => {
+    const effClass = !t.efficiency ? '' : t.efficiency >= 15 ? 'hi' : t.efficiency >= 10 ? 'md' : 'lo';
+    const effLabel = !t.efficiency ? '' : t.efficiency >= 15 ? '연비 우수' : t.efficiency >= 10 ? '연비 보통' : '연비 저하';
+    const dur = t.duration ? (t.duration >= 60 ? `${Math.floor(t.duration/60)}h ${t.duration%60}m` : `${t.duration}m`) : '—';
+    const hasRoute = t.route && t.route.length > 1;
+    return `
+    <div class="trip-card">
+      <div class="trip-top">
+        <div>
+          <div class="trip-route">${t.from} → ${t.to}</div>
+          <div class="trip-date">${t.date}${t.departureTime ? ' · '+t.departureTime : ''}${t.arrivalTime ? ' ~ '+t.arrivalTime : ''}</div>
+        </div>
+      </div>
+      <div class="trip-meta">
+        <div class="meta-chip">${t.distance} km</div>
+        <div class="meta-chip">${dur}</div>
+        ${t.efficiency ? `<div class="meta-chip ${effClass}">${t.efficiency} km/L</div>` : ''}
+        ${t.efficiency ? `<div class="meta-chip ${effClass}">${effLabel}</div>` : ''}
+        ${t.fuelCost ? `<div class="meta-chip">${t.fuelCost.toLocaleString()}원</div>` : ''}
+      </div>
+      ${t.notes ? `<div class="trip-note">📝 ${t.notes}</div>` : ''}
+      <div class="trip-actions">
+        ${hasRoute ? `<button class="trip-act-btn" onclick="viewRoute('${t.id}')">🗺 경로 보기</button>` : ''}
+        <button class="trip-act-btn" onclick="deleteTrip('${t.id}')">🗑 삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteTrip(id) {
+  if (!confirm('이 기록을 삭제할까요?')) return;
+  trips = trips.filter(t => t.id !== id);
+  saveDB();
+  renderHistory();
+  showToast('삭제 완료');
+}
+
+function viewRoute(id) {
+  const t = trips.find(t => t.id === id);
+  if (!t || !t.route?.length) return;
+  switchPanel('track');
+  if (!map) { setTimeout(() => viewRoute(id), 400); return; }
+  allRouteLines.forEach(l => map.removeLayer(l)); allRouteLines = [];
+  if (trackPolyline) { map.removeLayer(trackPolyline); trackPolyline = null; }
+  if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
+  if (startMarker) { map.removeLayer(startMarker); startMarker = null; }
+
+  const pl = L.polyline(t.route, { color:'#4d9fff', weight:4, opacity:0.9 }).addTo(map);
+  L.circleMarker(t.route[0], { radius:8, color:'#3ecf8e', fillColor:'#3ecf8e', fillOpacity:1, weight:2 }).addTo(map).bindPopup(t.from);
+  L.circleMarker(t.route[t.route.length-1], { radius:8, color:'#ff5c5c', fillColor:'#ff5c5c', fillOpacity:1, weight:2 }).addTo(map).bindPopup(t.to);
+  allRouteLines.push(pl);
+  map.fitBounds(pl.getBounds().pad(0.2));
+}
+
+// ── Stats ──
+function renderStats() {
+  const n = trips.length;
+  document.getElementById('s-trips').textContent = n;
+  const totalD = trips.reduce((a,t) => a+t.distance, 0);
+  const totalF = trips.reduce((a,t) => a+(t.fuel||0), 0);
+  const totalC = trips.reduce((a,t) => a+(t.fuelCost||0), 0);
+  const totalT = trips.reduce((a,t) => a+(t.duration||0), 0);
+  const withEff = trips.filter(t => t.efficiency > 0);
+  const avgEff = withEff.length ? (withEff.reduce((a,t) => a+t.efficiency, 0)/withEff.length).toFixed(1) : '—';
+  const withRoute = trips.filter(t => t.route?.length > 1).length;
+  document.getElementById('s-dist').textContent = totalD.toFixed(1);
+  document.getElementById('s-fuel').textContent = totalF.toFixed(1);
+  document.getElementById('s-cost').textContent = totalC.toLocaleString();
+  document.getElementById('s-time').textContent = totalT;
+  document.getElementById('s-eff').textContent = avgEff;
+  document.getElementById('s-routes').textContent = withRoute;
+  renderCharts();
+}
+
+function renderCharts() {
+  const isDark = true;
+  const gridColor = 'rgba(255,255,255,0.06)';
+  const labelColor = '#55556a';
+
+  const effData = [...trips].sort((a,b) => a.date.localeCompare(b.date)).filter(t => t.efficiency > 0).slice(-10);
+  const ctxE = document.getElementById('eff-chart').getContext('2d');
+  if (effChart) effChart.destroy();
+  effChart = new Chart(ctxE, {
+    type: 'line',
+    data: {
+      labels: effData.map(t => t.date.slice(5)),
+      datasets: [{ data: effData.map(t => t.efficiency), borderColor: '#3ecf8e', backgroundColor: 'rgba(62,207,142,0.07)', tension: 0.35, pointRadius: 4, pointBackgroundColor: '#3ecf8e', fill: true }]
+    },
+    options: {
+      responsive: true, plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'DM Mono', size: 11 } } },
+        y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'DM Mono', size: 11 } }, beginAtZero: false }
+      }
+    }
+  });
+
+  const mm = {};
+  trips.forEach(t => { const m = t.date.slice(0,7); mm[m] = (mm[m]||0) + t.distance; });
+  const mos = Object.keys(mm).sort();
+  const ctxD = document.getElementById('dist-chart').getContext('2d');
+  if (distChart) distChart.destroy();
+  distChart = new Chart(ctxD, {
+    type: 'bar',
+    data: {
+      labels: mos,
+      datasets: [{ data: mos.map(m => parseFloat(mm[m].toFixed(1))), backgroundColor: 'rgba(77,159,255,0.55)', borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'DM Mono', size: 11 } } },
+        y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'DM Mono', size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ── Init ──
+initMap();
+</script>
+</body>
+</html>
