@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NavRoute — 스마트 네비게이션</title>
+
+<!-- =====================================================
+     ✅  아래 YOUR_CLIENT_ID_HERE 를 본인의 ncpClientId로 교체하세요
+     네이버 클라우드 콘솔 > Application > Maps > Client ID
+     ===================================================== -->
+<script>
+  const NCP_CLIENT_ID = 'YOUR_CLIENT_ID_HERE';
+  // ── Directions API 서버 프록시 (선택) ──────────────────────────
+  // 실제 도로 경로 안내를 원하면, 서버를 통해 아래 주소로 프록시하세요.
+  // GET /proxy/directions?start=lng,lat&goal=lng,lat&option=trafast
+  //   → https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving
+  // 비워두면 직선 거리/예상 시간으로 동작합니다.
+  const DIRECTIONS_PROXY = '';
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ── RESET & ROOT ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080b14;
+  --surf:      #0f1623;
+  --surf2:     #162032;
+  --surf3:     #1d2a40;
+  --border:    rgba(255,255,255,0.06);
+  --blue:      #2563eb;
+  --blue-glow: rgba(37,99,235,0.4);
+  --cyan:      #06b6d4;
+  --green:     #22c55e;
+  --red:       #ef4444;
+  --amber:     #f59e0b;
+  --text:      #e8eef8;
+  --muted:     #64748b;
+  --dim:       #334155;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'Outfit', sans-serif;
+  --radius:    14px;
+  --panel-h:   0px;
+}
+
+html, body {
+  width: 100%; height: 100dvh;
+  overflow: hidden;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── API KEY OVERLAY ── */
+#apiOverlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: fadeIn .4s ease;
+}
+#apiOverlay.hidden { display: none; }
+
+.api-card {
+  width: 100%; max-width: 420px;
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.api-logo {
+  font-family: var(--font-display);
+  font-size: 38px;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.api-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.6;
+}
+
+.api-input-wrap { position: relative; }
+.api-input-wrap input {
+  width: 100%;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--font-body); font-size: 14px;
+  color: var(--text); outline: none;
+  transition: border-color .2s;
+}
+.api-input-wrap input:focus { border-color: var(--blue); }
+.api-input-wrap input::placeholder { color: var(--muted); }
+
+.api-hint {
+  font-size: 11px; color: var(--muted);
+  padding: 8px 12px;
+  background: rgba(6,182,212,0.07);
+  border-radius: 8px;
+  border-left: 2px solid var(--cyan);
+  line-height: 1.6;
+}
+.api-hint a { color: var(--cyan); }
+
+.btn-start {
+  padding: 13px;
+  background: linear-gradient(135deg, var(--blue), #1d4ed8);
+  border: none; border-radius: 10px;
+  font-family: var(--font-body); font-size: 15px; font-weight: 600;
+  color: #fff; cursor: pointer;
+  box-shadow: 0 4px 20px var(--blue-glow);
+  transition: opacity .2s, transform .15s;
+}
+.btn-start:hover { opacity: .9; transform: translateY(-1px); }
+
+/* ── MAP ── */
+#map { width: 100%; height: 100dvh; }
+
+/* ── GRADIENT OVERLAYS ── */
+.grad-top {
+  position: fixed; top: 0; left: 0; right: 0; height: 160px;
+  background: linear-gradient(to bottom, rgba(8,11,20,.95) 0%, transparent 100%);
+  pointer-events: none; z-index: 10;
+}
+.grad-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 220px;
+  background: linear-gradient(to top, rgba(8,11,20,.98) 0%, transparent 100%);
+  pointer-events: none; z-index: 10;
+}
+
+/* ── HEADER ── */
+#header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center;
+  padding: 14px 16px 10px;
+  gap: 12px;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 24px; letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+#gpsBadge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 5px 11px;
+  font-size: 11px; color: var(--muted);
+  transition: all .3s;
+}
+#gpsBadge .led {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted);
+  transition: background .3s;
+}
+#gpsBadge.on .led { background: var(--green); animation: ledPulse 2s infinite; }
+#gpsBadge.on { color: var(--green); border-color: rgba(34,197,94,.2); }
+
+@keyframes ledPulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+.spacer { flex: 1; }
+
+#btnMyLoc, #btnMapType {
+  width: 38px; height: 38px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 17px;
+  transition: all .2s; color: var(--text);
+}
+#btnMyLoc:hover, #btnMapType:hover { background: var(--surf3); border-color: var(--blue); }
+#btnMapType.sat { background: var(--blue); border-color: var(--blue); }
+
+/* ── SEARCH BOX ── */
+#searchBox {
+  position: fixed; top: 64px; left: 14px; right: 14px; z-index: 50;
+}
+
+.glass-panel {
+  background: rgba(15,22,35,.88);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 0.5px rgba(255,255,255,.04) inset;
+}
+
+.search-rows { padding: 6px 6px 4px; }
+
+.s-row {
+  display: flex; align-items: center;
+  padding: 8px 10px; gap: 10px;
+  position: relative;
+}
+
+.s-row input {
+  flex: 1;
+  background: transparent; border: none; outline: none;
+  font-family: var(--font-body); font-size: 14px; color: var(--text);
+}
+.s-row input::placeholder { color: var(--muted); }
+
+.node {
+  width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+}
+.node.origin { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.node.dest   { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+
+.connector {
+  width: 1.5px; height: 16px;
+  background: linear-gradient(to bottom, var(--green), var(--red));
+  margin: 0 4.25px; opacity: .4;
+  flex-shrink: 0; align-self: center;
+}
+
+.sep { height: 1px; background: var(--border); margin: 0 14px; }
+
+.search-actions {
+  display: flex; gap: 6px;
+  padding: 6px 6px 6px;
+}
+
+.s-btn {
+  flex: 1; padding: 9px 0;
+  border-radius: 9px; border: none;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .2s;
+}
+.s-btn.primary {
+  background: linear-gradient(135deg, var(--blue), #1d4ed8);
+  color: #fff;
+  box-shadow: 0 2px 12px var(--blue-glow);
+}
+.s-btn.primary:hover { opacity: .85; }
+.s-btn.primary:disabled { opacity: .35; cursor: not-allowed; }
+.s-btn.ghost {
+  background: var(--surf3); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.s-btn.ghost:hover { color: var(--text); }
+
+/* Autocomplete dropdown */
+#acList {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: rgba(15,22,35,.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: none; z-index: 200;
+  box-shadow: 0 12px 40px rgba(0,0,0,.7);
+}
+#acList.open { display: block; }
+
+.ac-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: var(--surf3); }
+.ac-icon { font-size: 14px; margin-top: 1px; }
+.ac-body { flex: 1; min-width: 0; }
+.ac-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-road { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* ── BOTTOM SHEET ── */
+#bottomSheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  padding: 0 14px 20px;
+  transform: translateY(calc(100% + 40px));
+  transition: transform .45s cubic-bezier(.16,1,.3,1);
+}
+#bottomSheet.open { transform: translateY(0); }
+
+.sheet-inner {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 -12px 48px rgba(0,0,0,.7);
+}
+
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--surf3);
+  margin: 10px auto 0;
+}
+
+.sheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+.sheet-title {
+  font-family: var(--font-display);
+  font-size: 18px; letter-spacing: 1px; color: var(--text);
+}
+.sheet-close {
+  width: 26px; height: 26px;
+  background: var(--surf2); border: 1px solid var(--border);
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px; color: var(--muted);
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; padding: 0 14px 14px;
+}
+.stat-card {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 26px; letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .6px;
+  margin-top: 4px;
+}
+
+/* Steps */
+.steps-wrap {
+  max-height: 160px; overflow-y: auto;
+  margin: 0 14px 14px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.step-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surf2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 9px 12px;
+}
+.step-ic { font-size: 14px; flex-shrink: 0; }
+.step-txt { flex: 1; font-size: 12.5px; color: var(--text); }
+.step-km { font-size: 11px; color: var(--muted); }
+
+/* scrollbar */
+.steps-wrap::-webkit-scrollbar { width: 3px; }
+.steps-wrap::-webkit-scrollbar-thumb { background: var(--surf3); border-radius: 2px; }
+
+/* ── FAB cluster ── */
+#fabGroup {
+  position: fixed; right: 14px; z-index: 40;
+  display: flex; flex-direction: column; gap: 8px;
+  bottom: 24px;
+  transition: bottom .45s cubic-bezier(.16,1,.3,1);
+}
+#fabGroup.sheet-open { bottom: calc(var(--panel-h) + 16px); }
+
+.fab {
+  width: 42px; height: 42px;
+  background: rgba(15,22,35,.9);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  transition: all .2s;
+}
+.fab:hover { background: var(--surf3); border-color: var(--blue); transform: scale(1.05); }
+.fab.active { background: var(--blue); border-color: var(--blue); }
+
+/* ── Speed badge (tracking mode) ── */
+#speedBadge {
+  position: fixed; left: 14px; z-index: 40;
+  bottom: 24px;
+  background: rgba(15,22,35,.9);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 16px;
+  min-width: 80px; text-align: center;
+  display: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  transition: bottom .45s cubic-bezier(.16,1,.3,1);
+}
+#speedBadge.visible { display: block; }
+#speedBadge.sheet-open { bottom: calc(var(--panel-h) + 16px); }
+.spd-val { font-family: var(--font-display); font-size: 30px; color: var(--text); line-height: 1; }
+.spd-unit { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+
+/* ── TOAST ── */
+#toasts {
+  position: fixed; top: 128px; left: 50%; transform: translateX(-50%);
+  z-index: 300; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: rgba(15,22,35,.95);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 18px; font-size: 13px;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  animation: toastIn .25s ease, toastOut .25s ease 2.75s forwards;
+}
+@keyframes toastIn  { from { opacity:0; transform:translateY(-6px) scale(.95); } to { opacity:1; transform:none; } }
+@keyframes toastOut { to   { opacity:0; transform:translateY(-6px) scale(.95); } }
+
+/* ── LOADING SCREEN ── */
+#loadScreen {
+  position: fixed; inset: 0; z-index: 8000;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  transition: opacity .5s;
+}
+#loadScreen.fade { opacity: 0; pointer-events: none; }
+#loadScreen.gone { display: none; }
+
+.load-logo { font-family: var(--font-display); font-size: 52px; letter-spacing: 6px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.load-bar-wrap { width: 160px; height: 3px; background: var(--surf3); border-radius: 2px; overflow: hidden; }
+.load-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--cyan));
+  border-radius: 2px; transition: width .3s ease; }
+.load-msg { font-size: 12px; color: var(--muted); }
+
+/* ── COMPASS / heading indicator (future) ── */
+#heading {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+  width: 36px; height: 36px; z-index: 50;
+  display: none; /* shown when compass available */
+}
+
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+</style>
+</head>
+<body>
+
+<!-- ── LOAD SCREEN ── -->
+<div id="loadScreen">
+  <div class="load-logo">NAVROUTE</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
+  <div class="load-msg" id="loadMsg">초기화 중...</div>
+</div>
+
+<!-- ── API KEY OVERLAY ── -->
+<div id="apiOverlay" class="hidden">
+  <div class="api-card">
+    <div class="api-logo">NAVROUTE</div>
+    <p style="font-size:16px;font-weight:600;">네이버 지도 API 설정</p>
+    <p class="api-desc">
+      네이버 클라우드 플랫폼의 <strong style="color:var(--cyan)">ncpClientId</strong>를 입력하세요.<br>
+      Maps JS API와 Geocoding 서비스가 활성화되어야 합니다.
+    </p>
+    <div class="api-input-wrap">
+      <input type="text" id="apiKeyInput" placeholder="ncpClientId를 입력하세요" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="api-hint">
+      📌 <a href="https://console.ncloud.com" target="_blank">console.ncloud.com</a> → Application 등록 →
+      AI·NAVER API → Maps → <b>Web Dynamic Map</b> + <b>Geocoding</b> 활성화
+    </div>
+    <button class="btn-start" onclick="applyApiKey()">지도 시작하기 →</button>
+  </div>
+</div>
+
+<!-- ── MAP ── -->
+<div id="map"></div>
+
+<!-- gradient overlays -->
+<div class="grad-top"></div>
+<div class="grad-bottom"></div>
+
+<!-- ── HEADER ── -->
+<div id="header">
+  <div class="logo-text">NAVROUTE</div>
+  <div id="gpsBadge"><div class="led"></div><span id="gpsLabel">GPS 대기</span></div>
+  <div class="spacer"></div>
+  <div id="btnMapType" class="fab" title="지도 유형" onclick="toggleMapType()">🗺️</div>
+  <div id="btnMyLoc"  class="fab active" title="내 위치" onclick="goMyLoc()">📍</div>
+</div>
+
+<!-- ── SEARCH BOX ── -->
+<div id="searchBox">
+  <div class="glass-panel search-rows">
+    <div class="s-row" id="rowOrigin">
+      <span class="node origin"></span>
+      <input type="text" id="iOrigin" placeholder="출발지 (빈칸 = 현재 위치)" autocomplete="off">
+    </div>
+    <div style="display:flex;padding:0 15px;gap:0;align-items:center;">
+      <div class="connector"></div>
+    </div>
+    <div class="s-row" id="rowDest">
+      <span class="node dest"></span>
+      <input type="text" id="iDest" placeholder="목적지를 입력하세요" autocomplete="off">
+    </div>
+    <div class="sep"></div>
+    <div class="search-actions">
+      <button class="s-btn ghost" onclick="clearAll()">⟳ 초기화</button>
+      <button class="s-btn primary" id="btnRoute" onclick="doRoute()">경로 탐색 →</button>
+    </div>
+  </div>
+
+  <!-- autocomplete -->
+  <div id="acList"></div>
+  <div id="toasts"></div>
+</div>
+
+<!-- ── BOTTOM SHEET ── -->
+<div id="bottomSheet">
+  <div class="sheet-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="sheetTitle">경로 안내</div>
+      <div class="sheet-close" onclick="closeSheet()">✕</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="sDist">—</div><div class="stat-lbl">거리</div></div>
+      <div class="stat-card"><div class="stat-val" id="sTime">—</div><div class="stat-lbl">소요 시간</div></div>
+      <div class="stat-card"><div class="stat-val" id="sEta">—</div><div class="stat-lbl">도착 예정</div></div>
+    </div>
+    <div class="steps-wrap" id="stepsWrap"></div>
+  </div>
+</div>
+
+<!-- ── FAB GROUP ── -->
+<div id="fabGroup">
+  <div class="fab" id="fabZoomIn"  onclick="map&&map.setZoom(map.getZoom()+1)">＋</div>
+  <div class="fab" id="fabZoomOut" onclick="map&&map.setZoom(map.getZoom()-1)">－</div>
+</div>
+
+<!-- ── SPEED BADGE ── -->
+<div id="speedBadge">
+  <div class="spd-val" id="spdVal">0</div>
+  <div class="spd-unit">km/h</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  GLOBALS
+// ═══════════════════════════════════════════
+let map, myMarker, destMarker, routePoly, myPos = null;
+let isSat = false, watchId = null, activeField = 'dest';
+let destCoord = null;
+
+const $  = id => document.getElementById(id);
+const qs = sel => document.querySelector(sel);
+
+// ═══════════════════════════════════════════
+//  BOOT  — load Naver Maps script dynamically
+// ═══════════════════════════════════════════
+function boot() {
+  animateLoad();
+
+  const clientId = NCP_CLIENT_ID.trim();
+  if (!clientId || clientId === 'YOUR_CLIENT_ID_HERE') {
+    setLoadMsg('API 키를 입력해주세요');
+    setLoadBar(100);
+    setTimeout(() => {
+      $('loadScreen').classList.add('gone');
+      $('apiOverlay').classList.remove('hidden');
+    }, 600);
+    return;
+  }
+
+  loadNaverScript(clientId);
+}
+
+function applyApiKey() {
+  const key = $('apiKeyInput').value.trim();
+  if (!key) { alert('API 키를 입력해주세요.'); return; }
+  $('apiOverlay').classList.add('hidden');
+  $('loadScreen').classList.remove('gone');
+  $('loadScreen').style.opacity = '';
+  animateLoad();
+  loadNaverScript(key);
+}
+
+function loadNaverScript(clientId) {
+  setLoadMsg('네이버 지도 SDK 로딩 중...');
+  setLoadBar(20);
+
+  const s = document.createElement('script');
+  s.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}&submodules=geocoder`;
+  s.onload = () => { setLoadBar(60); setLoadMsg('지도 초기화 중...'); setTimeout(initMap, 200); };
+  s.onerror = () => {
+    setLoadMsg('❌ API 키를 확인하세요');
+    setLoadBar(100);
+    setTimeout(() => {
+      $('loadScreen').classList.add('gone');
+      $('apiOverlay').classList.remove('hidden');
+    }, 1200);
+  };
+  document.head.appendChild(s);
+}
+
+// ═══════════════════════════════════════════
+//  LOAD ANIMATION
+// ═══════════════════════════════════════════
+let loadBarPct = 0;
+function setLoadBar(pct) { loadBarPct = pct; $('loadBar').style.width = pct + '%'; }
+function setLoadMsg(msg)  { $('loadMsg').textContent = msg; }
+function animateLoad() {
+  setLoadBar(5);
+  setTimeout(() => setLoadBar(15), 200);
+}
+
+// ═══════════════════════════════════════════
+//  MAP INIT
+// ═══════════════════════════════════════════
+function initMap() {
+  setLoadBar(80);
+  setLoadMsg('위치 정보 요청 중...');
+
+  try {
+    map = new naver.maps.Map('map', {
+      center: new naver.maps.LatLng(37.5665, 126.9780),
+      zoom: 15,
+      mapTypeId: naver.maps.MapTypeId.NORMAL,
+      zoomControl: false,
+      mapTypeControl: false,
+      logoControl: true,
+      scaleControl: false,
+    });
+
+    // map click → set destination
+    naver.maps.Event.addListener(map, 'click', onMapClick);
+
+    setLoadBar(100);
+    setLoadMsg('완료!');
+
+    setTimeout(() => {
+      $('loadScreen').classList.add('fade');
+      setTimeout(() => $('loadScreen').classList.add('gone'), 500);
+    }, 300);
+
+    startGPS();
+    setupSearch();
+
+  } catch(e) {
+    setLoadMsg('❌ 지도 초기화 실패: ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  GPS
+// ═══════════════════════════════════════════
+function startGPS() {
+  if (!navigator.geolocation) { setGps('err','GPS 미지원'); return; }
+  setGps('wait','위치 탐색 중…');
+
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      const ll = new naver.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      myPos = ll;
+      updateMyMarker(ll);
+      setGps('on', `±${Math.round(pos.coords.accuracy)}m`);
+
+      // speed
+      if (pos.coords.speed != null && pos.coords.speed >= 0) {
+        const kmh = Math.round(pos.coords.speed * 3.6);
+        $('spdVal').textContent = kmh;
+        $('speedBadge').classList.add('visible');
+      }
+    },
+    () => { setGps('err', 'GPS 권한 필요'); toast('⚠️ 위치 권한을 허용해주세요'); },
+    { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+  );
+}
+
+let firstLoc = true;
+function updateMyMarker(ll) {
+  if (!myMarker) {
+    myMarker = new naver.maps.Marker({
+      map, position: ll, zIndex: 100,
+      icon: {
+        content: `
+          <div style="position:relative;width:28px;height:28px;">
+            <div style="position:absolute;inset:-8px;border-radius:50%;background:rgba(37,99,235,.18);animation:r 2s ease infinite;"></div>
+            <div style="position:absolute;inset:0;border-radius:50%;background:rgba(37,99,235,.12);animation:r 2s ease .5s infinite;"></div>
+            <div style="position:absolute;inset:4px;border-radius:50%;background:#2563eb;border:2.5px solid #fff;box-shadow:0 2px 12px rgba(37,99,235,.8);"></div>
+          </div>
+          <style>@keyframes r{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.4);opacity:0}}</style>
+        `,
+        anchor: new naver.maps.Point(14, 14),
+      },
+    });
+    if (firstLoc) { map.setCenter(ll); firstLoc = false; }
+  } else {
+    myMarker.setPosition(ll);
+  }
+}
+
+function setGps(state, txt) {
+  const b = $('gpsBadge');
+  b.className = state === 'on' ? 'on' : '';
+  // remove 'on' class and add back only when needed
+  if (state === 'on') b.classList.add('on');
+  $('gpsLabel').textContent = txt;
+}
+
+function goMyLoc() {
+  if (myPos) { map.panTo(myPos); map.setZoom(16); }
+  else toast('📍 위치를 탐색 중이에요...');
+}
+
+// ═══════════════════════════════════════════
+//  MAP TYPE TOGGLE
+// ═══════════════════════════════════════════
+function toggleMapType() {
+  isSat = !isSat;
+  map.setMapTypeId(isSat ? naver.maps.MapTypeId.HYBRID : naver.maps.MapTypeId.NORMAL);
+  $('btnMapType').classList.toggle('sat', isSat);
+  $('btnMapType').textContent = isSat ? '🛰️' : '🗺️';
+  toast(isSat ? '🛰️ 위성지도' : '🗺️ 일반지도');
+}
+
+// ═══════════════════════════════════════════
+//  MAP CLICK → SET DESTINATION
+// ═══════════════════════════════════════════
+function onMapClick(e) {
+  destCoord = e.coord;
+  placeDestPin(e.coord);
+  naver.maps.Service.reverseGeocode(
+    { coords: e.coord, orders: 'roadaddr,addr' },
+    (status, res) => {
+      if (status !== naver.maps.Service.Status.OK) { $('iDest').value = '지도에서 선택한 위치'; return; }
+      const r = res.v2.results;
+      if (!r.length) { $('iDest').value = '지도에서 선택한 위치'; return; }
+      const area = r[0].region;
+      const land = r[0].land;
+      let addr = `${area.area2.name} ${area.area3.name}`;
+      if (land && land.name) addr += ` ${land.name}`;
+      if (land && land.number1) addr += land.number1;
+      $('iDest').value = addr.trim();
+    }
+  );
+  toast('📍 목적지 설정됨');
+}
+
+function placeDestPin(ll) {
+  if (destMarker) destMarker.setMap(null);
+  destMarker = new naver.maps.Marker({
+    map, position: ll, zIndex: 90,
+    icon: {
+      content: `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:#ef4444;
+            border:3px solid #fff;box-shadow:0 4px 16px rgba(239,68,68,.6);
+            transform:rotate(-45deg);"></div>
+          <div style="width:5px;height:5px;border-radius:50%;background:rgba(239,68,68,.5);"></div>
+        </div>
+      `,
+      anchor: new naver.maps.Point(15, 38),
+    },
+  });
+}
+
+// ═══════════════════════════════════════════
+//  SEARCH & AUTOCOMPLETE
+// ═══════════════════════════════════════════
+let debTimer, acOpen = false;
+
+function setupSearch() {
+  ['iOrigin','iDest'].forEach(id => {
+    const inp = $(id);
+    inp.addEventListener('focus', () => { activeField = id === 'iOrigin' ? 'origin' : 'dest'; });
+    inp.addEventListener('input', () => {
+      clearTimeout(debTimer);
+      const q = inp.value.trim();
+      if (q.length < 2) { closeAc(); return; }
+      debTimer = setTimeout(() => geocodeAc(q), 350);
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Escape') closeAc(); });
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#searchBox')) closeAc();
+  });
+}
+
+function geocodeAc(q) {
+  naver.maps.Service.geocode({ query: q }, (status, res) => {
+    if (status !== naver.maps.Service.Status.OK) { closeAc(); return; }
+    const items = res.v2.addresses.slice(0, 6);
+    if (!items.length) { closeAc(); return; }
+    renderAc(items);
+  });
+}
+
+function renderAc(items) {
+  const list = $('acList');
+  list.innerHTML = '';
+  items.forEach(item => {
+    const d = document.createElement('div');
+    d.className = 'ac-item';
+    d.innerHTML = `
+      <span class="ac-icon">📍</span>
+      <div class="ac-body">
+        <div class="ac-name">${item.roadAddress || item.jibunAddress}</div>
+        ${item.roadAddress && item.jibunAddress ? `<div class="ac-road">${item.jibunAddress}</div>` : ''}
+      </div>`;
+    d.onclick = () => selectAc(item);
+    list.appendChild(d);
+  });
+  list.classList.add('open');
+  acOpen = true;
+}
+
+function selectAc(item) {
+  const ll = new naver.maps.LatLng(parseFloat(item.y), parseFloat(item.x));
+  const addr = item.roadAddress || item.jibunAddress;
+
+  if (activeField === 'dest') {
+    $('iDest').value = addr;
+    destCoord = ll;
+    placeDestPin(ll);
+    map.panTo(ll);
+  } else {
+    $('iOrigin').value = addr;
+  }
+  closeAc();
+}
+
+function closeAc() {
+  $('acList').classList.remove('open');
+  acOpen = false;
+}
+
+// ═══════════════════════════════════════════
+//  ROUTE
+// ═══════════════════════════════════════════
+async function doRoute() {
+  const destTxt = $('iDest').value.trim();
+  if (!destTxt) { toast('⚠️ 목적지를 입력해주세요'); return; }
+
+  const originTxt = $('iOrigin').value.trim();
+  if (!originTxt && !myPos) { toast('⚠️ 출발지를 입력하거나 GPS를 허용해주세요'); return; }
+
+  const btn = $('btnRoute');
+  btn.disabled = true; btn.textContent = '탐색 중...';
+
+  try {
+    const [oCoord, dCoord] = await Promise.all([
+      originTxt ? geocodePromise(originTxt) : Promise.resolve(myPos),
+      destCoord  ? Promise.resolve(destCoord) : geocodePromise(destTxt),
+    ]);
+
+    // ensure dest pin
+    if (!destMarker || destMarker.getPosition().toString() !== dCoord.toString()) {
+      placeDestPin(dCoord);
+    }
+    destCoord = dCoord;
+
+    if (DIRECTIONS_PROXY) {
+      await fetchRealRoute(oCoord, dCoord);
+    } else {
+      drawFallbackRoute(oCoord, dCoord);
+    }
+
+  } catch(err) {
+    toast('⚠️ ' + (err.message || err));
+  } finally {
+    btn.disabled = false; btn.textContent = '경로 탐색 →';
+  }
+}
+
+function geocodePromise(query) {
+  return new Promise((res, rej) => {
+    naver.maps.Service.geocode({ query }, (status, data) => {
+      if (status !== naver.maps.Service.Status.OK || !data.v2.addresses.length)
+        return rej(new Error(`"${query}"을(를) 찾지 못했어요`));
+      const a = data.v2.addresses[0];
+      res(new naver.maps.LatLng(parseFloat(a.y), parseFloat(a.x)));
+    });
+  });
+}
+
+// ── Directions API (server proxy) ──
+async function fetchRealRoute(o, d) {
+  const url = `${DIRECTIONS_PROXY}?start=${o.lng()},${o.lat()}&goal=${d.lng()},${d.lat()}&option=trafast`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('서버 응답 오류: ' + resp.status);
+  const data = await resp.json();
+
+  const route = (data.route?.trafast || data.route?.traoptimal || [])[0];
+  if (!route) throw new Error('경로를 찾을 수 없어요');
+
+  const path = route.path.map(([lng, lat]) => new naver.maps.LatLng(lat, lng));
+  drawPoly(path, false);
+
+  const s = route.summary;
+  const km = (s.distance / 1000).toFixed(1);
+  const min = Math.round(s.duration / 60000);
+  const eta = new Date(Date.now() + s.duration);
+
+  showSheet('🚗  경로 안내', km + 'km', formatMin(min), formatTime(eta),
+    (route.section || []).slice(0, 10).map(sec => ({
+      icon: '↗️', text: sec.name || '이동', dist: (sec.distance/1000).toFixed(1) + 'km'
+    }))
+  );
+
+  fitBounds(path);
+  toast(`🚗 ${km}km · 약 ${min}분 소요`);
+}
+
+// ── Fallback: straight-line ──
+function drawFallbackRoute(o, d) {
+  drawPoly([o, d], true);
+
+  const km = haversine(o.lat(), o.lng(), d.lat(), d.lng());
+  const kmStr = km >= 1 ? km.toFixed(1) + 'km' : Math.round(km*1000) + 'm';
+  const min = Math.round(km / 40 * 60);  // ~40km/h avg
+  const eta = new Date(Date.now() + min*60000);
+
+  showSheet('📏  직선 경로', kmStr, formatMin(min), formatTime(eta), [
+    { icon:'⚡', text:'실제 도로 경로는 Directions API 서버 연동이 필요합니다', dist:'' },
+    { icon:'🔧', text:'HTML 상단 DIRECTIONS_PROXY 변수에 서버 URL을 입력하세요', dist:'' },
+  ]);
+
+  const bounds = new naver.maps.LatLngBounds(o, d);
+  map.fitBounds(bounds, { top:140, right:30, bottom:260, left:30 });
+  toast(`📏 직선 거리 ${kmStr} · 약 ${min}분 (참고용)`);
+}
+
+// ── polyline ──
+function drawPoly(path, dashed) {
+  if (routePoly) routePoly.setMap(null);
+  routePoly = new naver.maps.Polyline({
+    map, path,
+    strokeColor: '#2563eb',
+    strokeWeight: dashed ? 4 : 6,
+    strokeOpacity: .9,
+    strokeStyle: dashed ? 'longdash' : 'solid',
+    strokeLineCap: 'round',
+    strokeLineJoin: 'round',
+  });
+  // glow layer
+  new naver.maps.Polyline({
+    map, path,
+    strokeColor: '#06b6d4',
+    strokeWeight: dashed ? 8 : 12,
+    strokeOpacity: .12,
+    strokeStyle: dashed ? 'longdash' : 'solid',
+  });
+}
+
+function fitBounds(path) {
+  if (!path.length) return;
+  const b = new naver.maps.LatLngBounds(path[0], path[0]);
+  path.forEach(p => b.extend(p));
+  map.fitBounds(b, { top:140, right:30, bottom:280, left:30 });
+}
+
+// ═══════════════════════════════════════════
+//  BOTTOM SHEET
+// ═══════════════════════════════════════════
+function showSheet(title, dist, time, eta, steps) {
+  $('sheetTitle').textContent = title;
+  $('sDist').textContent = dist;
+  $('sTime').textContent = time;
+  $('sEta').textContent = eta;
+
+  const wrap = $('stepsWrap');
+  wrap.innerHTML = steps.map(s => `
+    <div class="step-item">
+      <span class="step-ic">${s.icon}</span>
+      <span class="step-txt">${s.text}</span>
+      <span class="step-km">${s.dist}</span>
+    </div>`).join('');
+
+  $('bottomSheet').classList.add('open');
+
+  // measure height and offset FABs
+  requestAnimationFrame(() => {
+    const h = $('bottomSheet').offsetHeight;
+    document.documentElement.style.setProperty('--panel-h', h + 'px');
+    $('fabGroup').classList.add('sheet-open');
+    $('speedBadge').classList.add('sheet-open');
+  });
+}
+
+function closeSheet() {
+  $('bottomSheet').classList.remove('open');
+  $('fabGroup').classList.remove('sheet-open');
+  $('speedBadge').classList.remove('sheet-open');
+}
+
+// ═══════════════════════════════════════════
+//  CLEAR ALL
+// ═══════════════════════════════════════════
+function clearAll() {
+  if (routePoly) { routePoly.setMap(null); routePoly = null; }
+  if (destMarker) { destMarker.setMap(null); destMarker = null; }
+  $('iOrigin').value = '';
+  $('iDest').value = '';
+  destCoord = null;
+  closeSheet();
+  // remove glow polys (all polys)
+  toast('🗑️ 초기화 완료');
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function haversine(lat1,lng1,lat2,lng2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function formatMin(min) {
+  if (min < 60) return min + '분';
+  return Math.floor(min/60) + 'h ' + (min%60) + 'm';
+}
+
+function formatTime(d) {
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  $('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+window.addEventListener('load', boot);
+</script>
+</body>
+</html>
