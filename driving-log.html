@@ -10,12 +10,12 @@
 <title>주행 로그</title>
 <script>
 if ('serviceWorker' in navigator) {
-  const sw = `const CACHE='driving-log-v2';const ASSETS=['https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('',{status:503}))));});`;
+  const sw = `const CACHE='driving-log-v3';const ASSETS=['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js','https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css','https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('',{status:503}))));});`;
   const blob = new Blob([sw], {type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
 }
 </script>
-<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=4474essorf" defer></script>
+<script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=4474essorf&callback=initMap"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -491,6 +491,12 @@ if ('serviceWorker' in navigator) {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
+// 네이버 지도 인증 실패 핸들러
+window.navermap_authFailure = function() {
+  showBgBar('err', '⚠️', '네이버 지도 인증 실패. API 키 또는 허용 도메인을 확인해주세요.', null, null);
+};
+</script>
+<script>
 // ── State ──
 let trips = JSON.parse(localStorage.getItem('driving_log_v1') || '[]');
 let map = null, watchId = null, isTracking = false;
@@ -514,46 +520,45 @@ function switchPanel(name) {
     document.getElementById('panel-'+n).classList.toggle('active', n === name);
     document.getElementById('nav-'+n).classList.toggle('active', n === name);
   });
-  if (name === 'track' && !map) tryInitMap();
+  if (name === 'track' && !map) showToast('지도 로딩 중...');
   if (name === 'history') renderHistory();
   if (name === 'stats') renderStats();
 }
 
-// ── Naver Maps helpers ──
-function nLL(lat, lng) { return new naver.maps.LatLng(lat, lng); }
+// ── Naver Maps 헬퍼 ──
+function nLL(lat, lng)  { return new naver.maps.LatLng(lat, lng); }
 
-function nDot(lat, lng, color, size=8, label='') {
-  const m = new naver.maps.Marker({
+function nDot(lat, lng, fillColor, label) {
+  return new naver.maps.Marker({
     position: nLL(lat, lng),
     map: map,
     icon: {
-      content: `<div style="width:${size*2}px;height:${size*2}px;border-radius:50%;background:${color};border:2.5px solid rgba(255,255,255,0.85);box-sizing:border-box;" title="${label}"></div>`,
-      anchor: new naver.maps.Point(size, size)
+      content: `<div style="width:16px;height:16px;border-radius:50%;background:${fillColor};border:2.5px solid rgba(255,255,255,0.9);box-sizing:border-box;" title="${label||''}"></div>`,
+      anchor: new naver.maps.Point(8, 8)
     }
   });
-  return m;
 }
 
-function nLine(points, color='#4d9fff') {
+function nLine(points, color) {
   return new naver.maps.Polyline({
     path: points.map(p => nLL(p[0], p[1])),
-    strokeColor: color,
+    strokeColor: color || '#4d9fff',
     strokeWeight: 4,
     strokeOpacity: 0.9,
     map: map
   });
 }
 
-function nFit(points, pad=0.15) {
-  if (!points.length) return;
+function nFit(points, padPx) {
+  if (!points || !points.length) return;
   const bounds = new naver.maps.LatLngBounds();
   points.forEach(p => bounds.extend(nLL(p[0], p[1])));
-  map.fitBounds(bounds, { padding: Math.round(Math.min(window.innerWidth, 400) * pad) });
+  map.fitBounds(bounds, { padding: padPx || 50 });
 }
 
 function nRemove(overlay) { if (overlay) overlay.setMap(null); }
 
-// ── Map ──
+// ── Map (콜백으로 자동 호출됨) ──
 function initMap() {
   map = new naver.maps.Map('map', {
     center: nLL(37.5665, 126.9780),
@@ -562,6 +567,8 @@ function initMap() {
     zoomControlOptions: { position: naver.maps.Position.RIGHT_BOTTOM }
   });
   updateMapFilter();
+  // 지도 준비 후 체크포인트 확인
+  checkAndRestoreCheckpoint();
 }
 
 // ── GPS ──
@@ -575,7 +582,7 @@ function haversine(a, b) {
 
 function startTracking() {
   if (!navigator.geolocation) { showToast('⚠️ 위치 서비스 미지원 브라우저'); return; }
-  if (!map) initMap();
+  if (!map) { showToast('⚠️ 지도가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요.'); return; }
   // reset
   trackPoints = []; totalDist = 0;
   [trackPolyline, currentMarker, startMarker].forEach(l => { if (l) map.removeLayer(l); });
@@ -627,13 +634,13 @@ function onPos(pos) {
   document.getElementById('live-pts').textContent = trackPoints.length;
 
   if (trackPoints.length === 1) {
-    startMarker = nDot(lat, lng, '#3ecf8e', 8, '출발');
+    startMarker = nDot(lat, lng, '#3ecf8e', '출발');
   }
   nRemove(currentMarker);
-  currentMarker = nDot(lat, lng, '#4d9fff', 9);
+  currentMarker = nDot(lat, lng, '#4d9fff', '현재 위치');
 
   nRemove(trackPolyline);
-  if (trackPoints.length > 1) trackPolyline = nLine(trackPoints);
+  if (trackPoints.length > 1) trackPolyline = nLine(trackPoints, '#4d9fff');
   map.panTo(nLL(lat, lng));
 }
 
@@ -659,12 +666,10 @@ function stopTracking() {
   document.getElementById('btn-stop').style.display = 'none';
 
   if (trackPoints.length > 1) {
-    if (currentMarker) {
-      nRemove(currentMarker); currentMarker = null;
-      const last = trackPoints[trackPoints.length-1];
-      nDot(last[0], last[1], '#ff5c5c', 8, '도착');
-    }
-    if (trackPolyline) nFit(trackPoints, 0.15);
+    nRemove(currentMarker); currentMarker = null;
+    const last = trackPoints[trackPoints.length - 1];
+    nDot(last[0], last[1], '#ff5c5c', '도착');
+    nFit(trackPoints, 60);
     document.getElementById('btn-save').style.display = 'flex';
   } else {
     showToast('경로 데이터가 부족합니다');
@@ -809,17 +814,17 @@ function viewRoute(id) {
   const t = trips.find(t => t.id === id);
   if (!t || !t.route?.length) return;
   switchPanel('track');
-  if (!map) { setTimeout(() => viewRoute(id), 400); return; }
+  if (!map) { showToast('지도 로딩 중...'); return; }
   allRouteLines.forEach(l => nRemove(l)); allRouteLines = [];
   nRemove(trackPolyline); trackPolyline = null;
   nRemove(currentMarker); currentMarker = null;
   nRemove(startMarker); startMarker = null;
 
   const pl = nLine(t.route, '#4d9fff');
-  nDot(t.route[0][0], t.route[0][1], '#3ecf8e', 8, t.from);
-  nDot(t.route[t.route.length-1][0], t.route[t.route.length-1][1], '#ff5c5c', 8, t.to);
+  nDot(t.route[0][0], t.route[0][1], '#3ecf8e', t.from);
+  nDot(t.route[t.route.length-1][0], t.route[t.route.length-1][1], '#ff5c5c', t.to);
   allRouteLines.push(pl);
-  nFit(t.route, 0.2);
+  nFit(t.route, 60);
 }
 
 // ── Stats ──
@@ -953,8 +958,8 @@ function restoreCheckpoint() {
     document.getElementById('live-pts').textContent = trackPoints.length;
     if (map && trackPoints.length > 1) {
       trackPolyline = nLine(trackPoints, '#4d9fff');
-      startMarker = nDot(trackPoints[0][0], trackPoints[0][1], '#3ecf8e', 8, '출발');
-      nFit(trackPoints, 0.15);
+      startMarker = nDot(trackPoints[0][0], trackPoints[0][1], '#3ecf8e', '출발');
+      nFit(trackPoints, 60);
     }
     return true;
   } catch(e) { return false; }
@@ -1018,16 +1023,18 @@ document.addEventListener('visibilitychange', () => {
 
 // ── Theme ──
 function updateMapFilter() {
-  const isDark = !document.documentElement.classList.contains('light');
   const mapEl = document.getElementById('map');
   if (!mapEl) return;
+  const isDark = !document.documentElement.classList.contains('light');
+  // 네이버 지도 타일에 다크 필터 적용
   mapEl.style.filter = isDark ? 'invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9)' : 'none';
-  // 마커(HTML)는 재반전해서 색상 원복
+  // 마커(HTML)는 역필터로 색상 원복
   let s = document.getElementById('_nmfix');
   if (!s) { s = document.createElement('style'); s.id = '_nmfix'; document.head.appendChild(s); }
+  // 네이버 마커 컨테이너 클래스에 역변환 적용
   s.textContent = isDark
-    ? '#map .naver-maps-custom-marker { filter: invert(1) hue-rotate(180deg); }'
-    : '#map .naver-maps-custom-marker { filter: none; }';
+    ? `#map div[style*="border-radius: 50%"], #map .naver-custom-marker { filter: invert(1) hue-rotate(180deg) brightness(1.15); }`
+    : `#map div[style*="border-radius: 50%"], #map .naver-custom-marker { filter: none; }`;
 }
 
 function toggleTheme() {
@@ -1058,17 +1065,12 @@ if (savedTheme === 'light') {
 } else {
   document.getElementById('theme-toggle').textContent = '☀️';
 }
+// initMap은 네이버 지도 API 로드 완료 시 자동으로 callback=initMap 으로 호출됨
 
-// Naver Maps 로드 완료 후 초기화
-function tryInitMap() {
-  if (window.naver && naver.maps) { initMap(); }
-  else { setTimeout(tryInitMap, 100); }
-}
-tryInitMap();
-
-// 이전 체크포인트 복원 여부 확인
-const cp = localStorage.getItem('track_checkpoint');
-if (cp) {
+// ── 체크포인트 복원 확인 (initMap 내에서 호출) ──
+function checkAndRestoreCheckpoint() {
+  const cp = localStorage.getItem('track_checkpoint');
+  if (!cp) return;
   try {
     const d = JSON.parse(cp);
     const age = Math.round((Date.now() - d.savedAt) / 1000 / 60);
@@ -1079,7 +1081,6 @@ if (cp) {
         () => {
           hideBgBar();
           if (restoreCheckpoint()) {
-            // GPS 재시작
             watchId = navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy: true, maximumAge: 1500, timeout: 15000 });
             timerInterval = setInterval(tickTimer, 1000);
             checkpointInterval = setInterval(saveCheckpoint, 10000);
