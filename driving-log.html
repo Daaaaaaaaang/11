@@ -466,14 +466,19 @@ if ('serviceWorker' in navigator) {
         <div class="field" style="margin:0"><label>출발지</label><input id="sf-from" type="text" placeholder="출발지 입력"></div>
         <div class="field" style="margin:0"><label>도착지</label><input id="sf-to" type="text" placeholder="도착지 입력"></div>
       </div>
-      <div class="field-row" style="margin-bottom:14px">
-        <div class="field" style="margin:0"><label>사용 연료 (L)</label><input id="sf-fuel" type="number" inputmode="decimal" placeholder="0.0" min="0" step="0.1" oninput="calcEff()"></div>
-        <div class="field" style="margin:0"><label>연료 단가 (원/L)</label><input id="sf-price" type="number" inputmode="numeric" placeholder="1750" min="0" oninput="calcEff()"></div>
+      <div class="field-row" style="margin-bottom:6px">
+        <div class="field" style="margin:0"><label>차량 연비 (km/L)</label><input id="sf-mpg" type="number" inputmode="decimal" placeholder="예: 12.5" min="0.1" step="0.1" oninput="calcEff()"></div>
+        <div class="field" style="margin:0"><label>현재 유가 (원/L)</label><input id="sf-price" type="number" inputmode="numeric" placeholder="예: 1680" min="0" oninput="calcEff()"></div>
       </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:14px;padding-left:2px">입력한 값은 다음 저장 시 자동으로 불러옵니다</div>
       <div class="eff-banner" id="eff-banner">
         <div>
+          <div class="eff-lbl">소모 연료</div>
+          <div class="eff-big"><span id="eff-fuel-val">—</span> <span style="font-size:14px;color:var(--text3)">L</span></div>
+        </div>
+        <div style="text-align:center">
           <div class="eff-lbl">연비</div>
-          <div class="eff-big"><span id="eff-val">—</span> <span style="font-size:14px;color:var(--text3)">km/L</span></div>
+          <div style="font-family:var(--mono);font-size:18px;color:var(--text)"><span id="eff-val">—</span> <span style="font-size:12px;color:var(--text3)">km/L</span></div>
         </div>
         <div style="text-align:right">
           <div class="eff-lbl">연료비</div>
@@ -703,8 +708,16 @@ function openSheet() {
     duration: trackStartTime ? Math.floor((Date.now()-trackStartTime)/60000) : 0,
     startTime: new Date(trackStartTime), endTime: new Date()
   };
-  ['sf-from','sf-to','sf-fuel','sf-price','sf-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sf-from').value = '';
+  document.getElementById('sf-to').value = '';
+  document.getElementById('sf-notes').value = '';
+  // 마지막으로 입력한 연비·유가 불러오기
+  const savedMpg = localStorage.getItem('last_mpg') || '';
+  const savedPrice = localStorage.getItem('last_price') || '';
+  document.getElementById('sf-mpg').value = savedMpg;
+  document.getElementById('sf-price').value = savedPrice;
   document.getElementById('eff-banner').classList.remove('show');
+  if (savedMpg && savedPrice) calcEff();
   document.getElementById('sheet-overlay').classList.add('open');
 }
 
@@ -714,23 +727,34 @@ function closeSheetOutside(e) {
 
 function calcEff() {
   if (!pendingTrip) return;
-  const fuel = parseFloat(document.getElementById('sf-fuel').value);
+  const mpg = parseFloat(document.getElementById('sf-mpg').value);
   const price = parseFloat(document.getElementById('sf-price').value) || 0;
   const banner = document.getElementById('eff-banner');
-  if (fuel > 0 && pendingTrip.distance > 0) {
-    document.getElementById('eff-val').textContent = (pendingTrip.distance/fuel).toFixed(1);
-    document.getElementById('cost-val').textContent = price > 0 ? Math.round(fuel*price).toLocaleString() : '—';
+  if (mpg > 0 && pendingTrip.distance > 0) {
+    const fuelUsed = pendingTrip.distance / mpg;
+    const cost = price > 0 ? Math.round(fuelUsed * price) : 0;
+    document.getElementById('eff-fuel-val').textContent = fuelUsed.toFixed(2);
+    document.getElementById('eff-val').textContent = mpg.toFixed(1);
+    document.getElementById('cost-val').textContent = cost > 0 ? cost.toLocaleString() : '—';
     banner.classList.add('show');
-  } else { banner.classList.remove('show'); }
+  } else {
+    banner.classList.remove('show');
+  }
 }
 
 function confirmSave() {
   if (!pendingTrip) return;
   const from = document.getElementById('sf-from').value.trim() || '출발지';
   const to = document.getElementById('sf-to').value.trim() || '도착지';
-  const fuel = parseFloat(document.getElementById('sf-fuel').value) || 0;
+  const mpg = parseFloat(document.getElementById('sf-mpg').value) || 0;
   const price = parseFloat(document.getElementById('sf-price').value) || 0;
-  const eff = (fuel > 0 && pendingTrip.distance > 0) ? parseFloat((pendingTrip.distance/fuel).toFixed(2)) : 0;
+  const fuelUsed = (mpg > 0 && pendingTrip.distance > 0) ? parseFloat((pendingTrip.distance / mpg).toFixed(2)) : 0;
+  const fuelCost = (fuelUsed > 0 && price > 0) ? Math.round(fuelUsed * price) : 0;
+
+  // 다음 저장을 위해 연비·유가 기억
+  if (mpg > 0) localStorage.setItem('last_mpg', mpg);
+  if (price > 0) localStorage.setItem('last_price', price);
+
   const trip = {
     id: Date.now().toString(),
     from, to,
@@ -739,8 +763,10 @@ function confirmSave() {
     arrivalTime: pendingTrip.endTime.toTimeString().slice(0,5),
     distance: pendingTrip.distance,
     duration: pendingTrip.duration,
-    fuel, fuelPrice: price, efficiency: eff,
-    fuelCost: (fuel > 0 && price > 0) ? Math.round(fuel*price) : 0,
+    efficiency: mpg,
+    fuel: fuelUsed,
+    fuelPrice: price,
+    fuelCost,
     notes: document.getElementById('sf-notes').value.trim(),
     route: pendingTrip.points
   };
