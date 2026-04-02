@@ -376,6 +376,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -505,6 +506,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1741,28 +1743,28 @@ showLastUpdated();
     }
 
     // ── 구형 인덱스 기반 메모 키 → 신형 plate|date|부품명 키로 마이그레이션 ──
+    // sbJobs(Supabase 원본) 기준으로 변환해야 인덱스가 정확함
+    const refJobs = (sbJobs && sbJobs.length > 0) ? sbJobs : JOBS;
     const hasSoldKeys = Object.keys(partMemos).some(k => /^\d+-\d+$/.test(k));
-    if (hasSoldKeys && JOBS.length > 0) {
+    if (hasSoldKeys && refJobs.length > 0) {
       const newMemos = {};
       Object.entries(partMemos).forEach(([k, v]) => {
         if (/^\d+-\d+$/.test(k)) {
-          // 구형 키: "312-0" → ji=312, pi=0
           const [ji, pi] = k.split('-').map(Number);
-          const j = JOBS[ji];
+          const j = refJobs[ji];
           if (j) {
-            const partName = (j.parts && j.parts[pi]) ? j.parts[pi] : pi;
+            const partName = (j.parts && j.parts[pi]) ? j.parts[pi] : String(pi);
             const newKey = `${j.plate||''}|${j.date||''}|${partName}`;
             newMemos[newKey] = v;
           }
         } else {
-          // 신형 키는 그대로
           newMemos[k] = v;
         }
       });
       partMemos = newMemos;
       try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
       sbSet('jungbi_pmemo', partMemos);
-      console.log('✅ 부품메모 키 마이그레이션 완료');
+      console.log('✅ 부품메모 키 마이그레이션 완료 (' + Object.keys(newMemos).length + '개)');
       changed = true;
     }
 
@@ -1781,6 +1783,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
