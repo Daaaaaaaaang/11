@@ -362,6 +362,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -491,6 +492,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1059,24 +1061,53 @@ function showLastUpdated(ts) {
   if (el && ts) el.innerHTML = `최종 갱신 <b>${ts}</b>`;
 }
 
-function mergeAndUpdate(newJobs) {
+async function mergeAndUpdate(newJobs) {
   function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
+
+  // Supabase에서 최신 데이터 먼저 가져옴 (다른 기기 수정사항 포함)
+  let baseJobs = JOBS;
+  let baseChecked = checkedState;
+  let baseMemos = partMemos;
+  try {
+    const [sbJobs, sbChecked, sbMemos] = await Promise.all([
+      sbGet('jungbi_jobs'),
+      sbGet('jungbi_checked'),
+      sbGet('jungbi_pmemo'),
+    ]);
+    if (sbJobs && sbJobs.length > 0) baseJobs = sbJobs;
+    if (sbChecked) baseChecked = sbChecked;
+    if (sbMemos) baseMemos = sbMemos;
+  } catch(e) {}
+
+  // 최신 Supabase 데이터 기준으로 체크/메모 반영
+  checkedState = baseChecked;
+  partMemos = baseMemos;
+  try { localStorage.setItem(LS_CHECKED, JSON.stringify(checkedState)); } catch(e) {}
+  try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
+
+  // 새 ICS 기준으로 병합 (Supabase의 완료/취소/메모/차대번호/부품 유지)
   const oldMap = {};
-  JOBS.forEach(j => { oldMap[jobKey(j)] = j; });
+  baseJobs.forEach(j => { oldMap[jobKey(j)] = j; });
+
   const merged = newJobs.map(nj => {
     const old = oldMap[jobKey(nj)];
-    if (!old) return nj;
+    if (!old) return nj; // 신규 일정
     return {
-      ...nj,
-      done:      old.done,
-      cancelled: old.cancelled,
-      note:      old.note !== undefined && old.note !== '' ? old.note : nj.note,
-      region:    old.region !== undefined && old.region !== '' ? old.region : nj.region,
-      parts:     old.parts !== undefined ? old.parts : nj.parts,
+      ...nj,                                                          // 새 ICS 내용 기준
+      done:      old.done,                                            // 완료 상태 유지
+      cancelled: old.cancelled,                                       // 취소 상태 유지
+      note:      old.note !== undefined && old.note !== '' ? old.note : nj.note,     // 메모 유지
+      region:    old.region !== undefined && old.region !== '' ? old.region : nj.region, // 차대번호 유지
+      parts:     old.parts !== undefined ? old.parts : nj.parts,     // 부품 유지
     };
   });
+
   JOBS = merged;
   saveJobs();
+  if (SB_READY) {
+    sbSet('jungbi_checked', checkedState);
+    sbSet('jungbi_pmemo', partMemos);
+  }
   renderSchedule();
 }
 
@@ -1519,6 +1550,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
