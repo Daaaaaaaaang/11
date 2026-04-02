@@ -369,6 +369,8 @@
 
 
 
+
+
 </style>
 </head>
 <body>
@@ -498,6 +500,8 @@
     </div>
   </div>
 </div>
+
+
 
 
 
@@ -1698,6 +1702,32 @@ showLastUpdated();
       changed = true;
     }
 
+    // ── 구형 인덱스 기반 메모 키 → 신형 plate|date|부품명 키로 마이그레이션 ──
+    const hasSoldKeys = Object.keys(partMemos).some(k => /^\d+-\d+$/.test(k));
+    if (hasSoldKeys && JOBS.length > 0) {
+      const newMemos = {};
+      Object.entries(partMemos).forEach(([k, v]) => {
+        if (/^\d+-\d+$/.test(k)) {
+          // 구형 키: "312-0" → ji=312, pi=0
+          const [ji, pi] = k.split('-').map(Number);
+          const j = JOBS[ji];
+          if (j) {
+            const partName = (j.parts && j.parts[pi]) ? j.parts[pi] : pi;
+            const newKey = `${j.plate||''}|${j.date||''}|${partName}`;
+            newMemos[newKey] = v;
+          }
+        } else {
+          // 신형 키는 그대로
+          newMemos[k] = v;
+        }
+      });
+      partMemos = newMemos;
+      try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
+      sbSet('jungbi_pmemo', partMemos);
+      console.log('✅ 부품메모 키 마이그레이션 완료');
+      changed = true;
+    }
+
     SB_READY = true;
     if (changed) renderSchedule();
     console.log('✅ Supabase 데이터 로드 완료');
@@ -1713,6 +1743,8 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
+
 
 
 
