@@ -315,6 +315,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -347,11 +348,9 @@
       <span>전체 <b id="totalCount">-</b>건</span>
     </div>
     <span class="last-updated" id="lastUpdated"></span>
-    <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일 불러와서 일정 갱신">📅 ICS 갱신</button>
-    <input type="file" id="icsFileInput" accept=".ics" style="display:none" onchange="loadICSFile(this)">
     <span class="last-updated" id="lastUpdated"></span>
     <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일로 일정 갱신">📅 ICS 갱신</button>
-    <input type="file" id="icsFileInput" accept=".ics" style="display:none" onchange="loadICSFile(event)">
+    <input type="file" id="icsFileInput" accept=".ics" style="display:none" onchange="loadICSFile(this)">
     <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">🔩 발주부품</button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
     <button class="btn-add" onclick="openModal()">＋ 일정 추가</button>
@@ -427,6 +426,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1065,173 +1065,6 @@ function showLastUpdated() {
   } catch(e) {}
 }
 
-function loadICSFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const text = e.target.result;
-      const newJobs = parseICSText(text);
-      if (!newJobs || newJobs.length === 0) {
-        alert('일정을 찾을 수 없어요. ICS 파일을 확인해주세요.');
-        return;
-      }
-      // 기존 Supabase 데이터와 병합
-      mergeAndApply(newJobs);
-      // 갱신 시각 저장
-      const now = getNow();
-      const label = now.getFullYear() + '.' +
-        String(now.getMonth()+1).padStart(2,'0') + '.' +
-        String(now.getDate()).padStart(2,'0') + ' ' +
-        String(now.getHours()).padStart(2,'0') + ':' +
-        String(now.getMinutes()).padStart(2,'0');
-      localStorage.setItem(LS_LAST_UPDATED, label);
-      showLastUpdated();
-      alert('✅ ' + newJobs.length + '개 일정이 갱신됐어요!');
-    } catch(err) {
-      alert('오류: ' + err.message);
-    }
-    input.value = '';
-  };
-  reader.readAsText(file, 'UTF-8');
-}
-
-function mergeAndApply(newJobs) {
-  function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
-  const oldMap = {};
-  JOBS.forEach(j => { oldMap[jobKey(j)] = j; });
-  const merged = newJobs.map(dj => {
-    const old = oldMap[jobKey(dj)];
-    if (!old) return dj;
-    return {
-      ...dj,
-      done:      old.done,
-      cancelled: old.cancelled,
-      note:      old.note !== undefined && old.note !== '' ? old.note : dj.note,
-      region:    old.region !== undefined && old.region !== '' ? old.region : dj.region,
-      parts:     old.parts !== undefined ? old.parts : dj.parts,
-    };
-  });
-  JOBS = merged;
-  saveJobs();
-  renderSchedule();
-}
-
-function parseICSText(text) {
-  // line folding 처리
-  text = text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
-
-  const events = [];
-  let current = null;
-  for (const line of text.split('\n')) {
-    const l = line.trim();
-    if (l === 'BEGIN:VEVENT') { current = {}; }
-    else if (l === 'END:VEVENT') { if (current) events.push(current); current = null; }
-    else if (current && l.includes(':')) {
-      const sep = l.indexOf(':');
-      const key = l.slice(0, sep).split(';')[0].toUpperCase();
-      if (!(key in current)) current[key] = l.slice(sep + 1);
-    }
-  }
-
-  const jobs = [];
-  const seen = new Set();
-  const BL = ['엔진오일','엔진 오일','미션오일','미션 오일','DCT미션오일','DCT 미션오일','에어컨필터','에어컨 필터','배터리','앞패드','앞 패드','뒤패드','뒤 패드'];
-  const KW = ['마운트세트','마운트 세트','엔진마운트','타이밍체인커버','타이밍 체인 커버','타이밍커버','워터펌프어셈블리','워터펌프 어셈블리','워터펌프','댐퍼풀리세트','댐퍼풀리 세트','댐퍼풀리','오일필터하우징','오일필터','오일팬','터보인테이크가스켓','터보 인테이크 가스켓','터보어셈블리','터보파이프','터보재생','벨트세트','환기파이프','로워암부싱세트','앞 부싱','앞부싱','부싱세트','볼조인트','허브베어링','쇼바마운트','인터쿨러파이프','플러그씰','브레이크액','브레이크 액','브레이크패드','브레이크 패드','헤드개스킷','클러치','링크','부싱','오일압력제어밸브'];
-
-  function cleanText(s) {
-    return (s||'').replace(/\n/g,' ').replace(/\,/g,',').replace(/\;/g,';').replace(/\r/g,'').trim();  }
-  function parseDt(s) {
-    if (!s) return ['',''];
-    s = s.trim();
-    if (s.includes('T')) {
-      const y=s.slice(0,4), mo=s.slice(4,6), d=s.slice(6,8), h=s.slice(9,11), mi=s.slice(11,13);
-      return [parseInt(mo)+'/'+parseInt(d), h+':'+mi];
-    } else {
-      const mo=s.slice(4,6), d=s.slice(6,8);
-      return [parseInt(mo)+'/'+parseInt(d), '종일'];
-    }
-  }
-  function extractParts(title) {
-    const tl = title.toLowerCase();
-    const found = [];
-    for (const kw of KW) {
-      if (tl.includes(kw.toLowerCase())) {
-        if (BL.some(b => kw.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(kw.toLowerCase()))) continue;
-        if (!found.some(f => f.toLowerCase().includes(kw.toLowerCase()) || kw.toLowerCase().includes(f.toLowerCase()))) found.push(kw);
-      }
-    }
-    return found;
-  }
-  function parseSummary(summary) {
-    let s = summary;
-    // 전화번호 제거
-    s = s.replace(/0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}/g, '').trim();
-    // 모델
-    const modelM = s.match(/^([A-Z]\d+[a-z]*d?)/);
-    const model = modelM ? modelM[1] : '';
-    if (model) s = s.slice(model.length).replace(/^\./, '');
-    // 번호판
-    const plateM = s.match(/[\d가-힣]+[가-힣][\d]+|[가-힣]+\d+/);
-    const plate = plateM ? plateM[0].trim() : '';
-    let title = plate ? s.replace(plate, '') : s;
-    title = title.replace(/[(（][^)）\n]{1,15}[)）]/g, '').replace(/^[\s.,\-]+/, '').replace(/[\s.,\-]+$/, '').replace(/\s{2,}/g, ' ').trim();
-    return { model, plate, title };
-  }
-
-  for (const ev of events) {
-    const summary = cleanText(ev['SUMMARY'] || '');
-    if (!summary || summary.includes('청소 시간')) continue;
-    const uid = (ev['UID'] || '') + (ev['RECURRENCE-ID'] || '');
-    if (seen.has(uid)) continue;
-    seen.add(uid);
-    const [date, time] = parseDt(ev['DTSTART'] || '');
-    let [endDate] = parseDt(ev['DTEND'] || '');
-    if (endDate === date) endDate = '';
-    if (!date) continue;
-    const { model, plate, title } = parseSummary(summary);
-    jobs.push({
-      date, endDate, time, model, plate, region: '',
-      title, parts: extractParts(title), phone: '',
-      note: cleanText(ev['DESCRIPTION'] || ''),
-      done: !!(ev['X-NAVER-COMPLETED']),
-      cancelled: summary.includes('취소'),
-    });
-  }
-  jobs.sort((a, b) => {
-    const sk = j => { try { const [m,d]=j.date.split('/'); const [h,mi]=j.time.includes(':') ? j.time.split(':') : ['99','0']; return parseInt(m)*100000+parseInt(d)*1000+parseInt(h)*10+parseInt(mi); } catch(e) { return 9999999; } };
-    return sk(a) - sk(b);
-  });
-  return jobs;
-}
-
-// ── ICS 파일 불러오기 ────────────────────────────────────────────────────
-function loadICSFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const raw = e.target.result;
-    const jobs = parseICSText(raw);
-    if (jobs.length === 0) {
-      alert('일정을 찾을 수 없어요. ICS 파일을 확인해주세요.');
-      return;
-    }
-    // 기존 Supabase 데이터와 병합 (완료/메모/차대번호/부품 유지)
-    mergeAndUpdate(jobs);
-    // 갱신 시간 저장
-    const now = getNow();
-    const ts = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    try { localStorage.setItem('jungbi_last_updated', ts); } catch(e) {}
-    if (SB_READY) sbSet('jungbi_last_updated', ts);
-    showLastUpdated(ts);
-    alert(`✅ ${jobs.length}개 일정 갱신 완료!`);
-  };
-  reader.readAsText(file, 'utf-8');
-  // 같은 파일 다시 선택 가능하도록 초기화
-  event.target.value = '';
-}
 
 function showLastUpdated(ts) {
   const el = document.getElementById('lastUpdated');
@@ -1359,6 +1192,29 @@ function extractParts(title) {
   // Supabase에서도 갱신 시간 로드
   sbGet('jungbi_last_updated').then(t => { if (t) { showLastUpdated(t); try { localStorage.setItem('jungbi_last_updated', t); } catch(e) {} } }).catch(()=>{});
 })();
+
+function loadICSFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const raw = e.target.result;
+    const jobs = parseICSText(raw);
+    if (jobs.length === 0) {
+      alert('일정을 찾을 수 없어요. ICS 파일을 확인해주세요.');
+      return;
+    }
+    mergeAndUpdate(jobs);
+    const now = getNow();
+    const ts = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    try { localStorage.setItem('jungbi_last_updated', ts); } catch(e) {}
+    if (SB_READY) sbSet('jungbi_last_updated', ts);
+    showLastUpdated(ts);
+    alert('✅ ' + jobs.length + '개 일정 갱신 완료!');
+  };
+  reader.readAsText(file, 'utf-8');
+  input.value = '';
+}
 
 function togglePartsOnly() {
   partsOnly = !partsOnly;
@@ -1582,6 +1438,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
