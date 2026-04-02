@@ -374,6 +374,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -503,6 +504,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -866,6 +868,28 @@ function stableMemoKey(ji, pi) {
   return `${j.plate||''}|${j.date||''}|${partName}`;
 }
 
+function findMemo(ji, pi) {
+  const exactKey = stableMemoKey(ji, pi);
+  if (partMemos[exactKey]) return partMemos[exactKey];
+  const j = JOBS[ji];
+  if (!j) return '';
+  const partName = (j.parts && j.parts[pi]) ? j.parts[pi].toLowerCase() : '';
+  const plate = (j.plate||'').toLowerCase();
+  if (!partName) return '';
+  for (const [k, v] of Object.entries(partMemos)) {
+    const parts = k.split('|');
+    if (parts.length >= 3) {
+      const kPlate = parts[0].toLowerCase();
+      const kPart  = parts[parts.length-1].toLowerCase();
+      if (kPlate === plate && kPart === partName) return v;
+    }
+  }
+  for (const [k, v] of Object.entries(partMemos)) {
+    if (k === `${ji}-${pi}`) return v;
+  }
+  return '';
+}
+
 function loadPartMemos() {
   try { var s = localStorage.getItem(LS_PMEMO); return s ? JSON.parse(s) : {}; }
   catch(e) { return {}; }
@@ -1027,7 +1051,7 @@ function renderSchedule() {
       if (job.parts && job.parts.length > 0) {
         const rows = job.parts.map((part,pi) => {
           const chk = isChecked(ji,pi) ? ' checked' : '';
-          const memo = partMemos[stableMemoKey(ji, pi)] || '';
+          const memo = findMemo(ji, pi);
           const hasMemo = memo.length > 0;
           return `<div>
             <div class="part-row${chk}" id="p-${ji}-${pi}">
@@ -1223,10 +1247,23 @@ function showLastUpdated(ts) {
 
 async function mergeAndUpdate(newJobs) {
   function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
+  function jobKeyShort(j) { return (j.plate||'')+'|'+(j.model||''); }
+  function findSbJob(dj, sbMap, sbJobs) {
+    const exact = sbMap[jobKey(dj)];
+    if (exact) return exact;
+    if (!dj.plate) return null;
+    const shortKey = jobKeyShort(dj);
+    const candidates = sbJobs.filter(j => jobKeyShort(j) === shortKey);
+    if (candidates.length === 1) return candidates[0];
+    if (candidates.length > 1) {
+      return candidates.reduce((a, b) => {
+        const da = Math.abs((a.date||'').localeCompare(dj.date||''));
+        const db = Math.abs((b.date||'').localeCompare(dj.date||''));
+        return da <= db ? a : b;
+      });
+    }
     return null;
-  }
-    return null;
-  }
+  }  // findSbJob 끝
 
   // Supabase에서 최신 데이터 먼저 가져옴 (다른 기기 수정사항 포함)
   let baseJobs = JOBS;
@@ -1254,7 +1291,7 @@ async function mergeAndUpdate(newJobs) {
   baseJobs.forEach(j => { oldMap[jobKey(j)] = j; });
 
   const merged = newJobs.map(nj => {
-    const old = oldMap[jobKey(nj)];
+    const old = findSbJob(nj, oldMap, baseJobs);
     if (!old) return nj;
     return {
       ...nj,
@@ -1526,8 +1563,6 @@ async function manualRefresh() {
     }
     if (sbJobs) {
       function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
-    return null;
-  }
       const sbMap = {};
       sbJobs.forEach(j => { sbMap[jobKey(j)] = j; });
       const merged = DEFAULT_JOBS.map(dj => {
@@ -1621,8 +1656,6 @@ setInterval(async function() {
     }
     if (sbJobs) {
       function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
-    return null;
-  }
       const sbMap = {};
       sbJobs.forEach(j => { sbMap[jobKey(j)] = j; });
       const merged = DEFAULT_JOBS.map(dj => {
@@ -1665,8 +1698,6 @@ showLastUpdated();
 
     if (sbJobs && sbJobs.length > 0) {
       function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
-    return null;
-  }
 
       // DEFAULT_JOBS가 최신 ICS와 같은 경우 → DEFAULT_JOBS 기준으로 병합
       // DEFAULT_JOBS가 구버전이거나 없는 경우 → Supabase 데이터를 그대로 사용
@@ -1760,6 +1791,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
