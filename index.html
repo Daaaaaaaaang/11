@@ -375,6 +375,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -504,6 +505,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -869,24 +871,12 @@ function stableMemoKey(ji, pi) {
 }
 
 function findMemo(ji, pi) {
+  // 1. 정확한 키
   const exactKey = stableMemoKey(ji, pi);
-  if (partMemos[exactKey]) return partMemos[exactKey];
-  const j = JOBS[ji];
-  if (!j) return '';
-  const partName = (j.parts && j.parts[pi]) ? j.parts[pi].toLowerCase() : '';
-  const plate = (j.plate||'').toLowerCase();
-  if (!partName) return '';
-  for (const [k, v] of Object.entries(partMemos)) {
-    const parts = k.split('|');
-    if (parts.length >= 3) {
-      const kPlate = parts[0].toLowerCase();
-      const kPart  = parts[parts.length-1].toLowerCase();
-      if (kPlate === plate && kPart === partName) return v;
-    }
-  }
-  for (const [k, v] of Object.entries(partMemos)) {
-    if (k === `${ji}-${pi}`) return v;
-  }
+  if (partMemos[exactKey] !== undefined) return partMemos[exactKey];
+  // 2. 구형 인덱스 키 (이전 버전 호환)
+  const oldKey = `${ji}-${pi}`;
+  if (partMemos[oldKey] !== undefined) return partMemos[oldKey];
   return '';
 }
 
@@ -1791,6 +1781,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
