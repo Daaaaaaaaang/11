@@ -368,6 +368,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -497,6 +498,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -801,6 +803,12 @@ async function sbGet(id) {
     const rows = await res.json();
     return rows.length > 0 ? rows[0].data : null;
   } catch(e) { return null; }
+}
+
+// Supabase에서 불러온 parts에서 블랙리스트 단어 포함된 항목 제거
+function filterBlacklistFromParts(parts) {
+  if (!parts || !Array.isArray(parts)) return parts;
+  return parts.filter(p => !PART_BLACKLIST.some(bl => p.toLowerCase().includes(bl.toLowerCase())));
 }
 
 async function sbSet(id, data) {
@@ -1239,7 +1247,7 @@ async function mergeAndUpdate(newJobs) {
       cancelled: old.cancelled,
       note:      old.note !== undefined && old.note !== '' ? old.note : nj.note,
       region:    old.region !== undefined && old.region !== '' ? old.region : nj.region,
-      parts:     old.parts !== undefined ? old.parts : nj.parts,
+      parts:     old.parts !== undefined ? filterBlacklistFromParts(old.parts) : nj.parts,
     };
   });
 
@@ -1511,7 +1519,7 @@ async function manualRefresh() {
         return { ...dj, done: sb.done, cancelled: sb.cancelled,
           note: sb.note !== undefined && sb.note !== '' ? sb.note : dj.note,
           region: sb.region !== undefined && sb.region !== '' ? sb.region : dj.region,
-          parts: sb.parts !== undefined ? sb.parts : dj.parts };
+          parts: sb.parts !== undefined ? filterBlacklistFromParts(sb.parts) : dj.parts };
       });
       if (JSON.stringify(merged) !== JSON.stringify(JOBS)) {
         JOBS = merged;
@@ -1607,7 +1615,7 @@ setInterval(async function() {
           cancelled: sb.cancelled,
           note:      sb.note !== undefined && sb.note !== '' ? sb.note : dj.note,
           region:    sb.region !== undefined && sb.region !== '' ? sb.region : dj.region,
-          parts:     sb.parts !== undefined ? sb.parts : dj.parts,
+          parts:     sb.parts !== undefined ? filterBlacklistFromParts(sb.parts) : dj.parts,
         };
       });
       if (JSON.stringify(merged) !== JSON.stringify(JOBS)) {
@@ -1655,7 +1663,7 @@ showLastUpdated();
             cancelled: sb.cancelled,
             note:      sb.note !== undefined ? sb.note : dj.note,
             region:    sb.region !== undefined && sb.region !== '' ? sb.region : dj.region,
-            parts:     sb.parts !== undefined ? sb.parts : dj.parts,
+            parts:     sb.parts !== undefined ? filterBlacklistFromParts(sb.parts) : dj.parts,
           };
         });
 
@@ -1705,6 +1713,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
