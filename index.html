@@ -314,6 +314,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -426,6 +427,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1118,18 +1120,11 @@ function mergeAndApply(newJobs) {
 
 function parseICSText(text) {
   // line folding 처리
-  text = text.replace(/
- /g, '').replace(/
-	/g, '');
-  text = text.replace(/
- /g, '').replace(/
-	/g, '');
+  text = text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
 
   const events = [];
   let current = null;
-  for (const line of text.split(/
-?
-/)) {
+  for (const line of text.split('\n')) {
     const l = line.trim();
     if (l === 'BEGIN:VEVENT') { current = {}; }
     else if (l === 'END:VEVENT') { if (current) events.push(current); current = null; }
@@ -1146,9 +1141,7 @@ function parseICSText(text) {
   const KW = ['마운트세트','마운트 세트','엔진마운트','타이밍체인커버','타이밍 체인 커버','타이밍커버','워터펌프어셈블리','워터펌프 어셈블리','워터펌프','댐퍼풀리세트','댐퍼풀리 세트','댐퍼풀리','오일필터하우징','오일필터','오일팬','터보인테이크가스켓','터보 인테이크 가스켓','터보어셈블리','터보파이프','터보재생','벨트세트','환기파이프','로워암부싱세트','앞 부싱','앞부싱','부싱세트','볼조인트','허브베어링','쇼바마운트','인터쿨러파이프','플러그씰','브레이크액','브레이크 액','브레이크패드','브레이크 패드','헤드개스킷','클러치','링크','부싱','오일압력제어밸브'];
 
   function cleanText(s) {
-    return (s||'').replace(/\n/g,' ').replace(/\,/g,',').replace(/\;/g,';').replace(/
-/g,'').trim();
-  }
+    return (s||'').replace(/\n/g,' ').replace(/\,/g,',').replace(/\;/g,';').replace(/\r/g,'').trim();  }
   function parseDt(s) {
     if (!s) return ['',''];
     s = s.trim();
@@ -1268,22 +1261,20 @@ function mergeAndUpdate(newJobs) {
 
 // ── ICS 텍스트 파서 (Python과 동일한 로직) ────────────────────────────
 function parseICSText(text) {
-  // line folding 처리
-  text = text.replace(/
-[ 	]/g, '').replace(/
-[ 	]/g, '');
-  const lines = text.split(/
-?
-/);
+  // line folding 처리 (CRLF + space/tab)
+  text = text.split('\r\n ').join('').split('\r\n\t').join('');
+  text = text.split('\n ').join('').split('\n\t').join('');
+  const lines = text.split(/\r\n|\n|\r/);
   const events = [];
   let current = null;
   for (const line of lines) {
-    if (line.trim() === 'BEGIN:VEVENT') { current = {}; }
-    else if (line.trim() === 'END:VEVENT') { if (current) events.push(current); current = null; }
-    else if (current && line.includes(':')) {
-      const sep = line.indexOf(':');
-      const key = line.slice(0, sep).split(';')[0].toUpperCase();
-      if (!(key in current)) current[key] = line.slice(sep + 1);
+    const l = line.trim();
+    if (l === 'BEGIN:VEVENT') { current = {}; }
+    else if (l === 'END:VEVENT') { if (current) events.push(current); current = null; }
+    else if (current && l.includes(':')) {
+      const sep = l.indexOf(':');
+      const key = l.slice(0, sep).split(';')[0].toUpperCase();
+      if (!(key in current)) current[key] = l.slice(sep + 1);
     }
   }
   const seen = new Set();
@@ -1310,7 +1301,6 @@ function parseICSText(text) {
   jobs.sort((a, b) => sortKey(a) - sortKey(b));
   return jobs;
 }
-
 function cleanText(t) {
   return t.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\r/g, '').trim();
 }
@@ -1592,6 +1582,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
