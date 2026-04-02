@@ -313,6 +313,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -425,6 +426,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1181,8 +1183,7 @@ function parseICSText(text) {
     const plateM = s.match(/[\d가-힣]+[가-힣][\d]+|[가-힣]+\d+/);
     const plate = plateM ? plateM[0].trim() : '';
     let title = plate ? s.replace(plate, '') : s;
-    title = title.replace(/[(（][^)）
-]{1,15}[)）]/g, '').replace(/^[\s.,\-]+/, '').replace(/[\s.,\-]+$/, '').replace(/\s{2,}/g, ' ').trim();
+    title = title.replace(/[(（][^)）\n]{1,15}[)）]/g, '').replace(/^[\s.,\-]+/, '').replace(/[\s.,\-]+$/, '').replace(/\s{2,}/g, ' ').trim();
     return { model, plate, title };
   }
 
@@ -1591,6 +1592,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
