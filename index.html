@@ -47,9 +47,26 @@
   .btn-refresh{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;padding:0;}
   .btn-refresh:hover{border-color:var(--green);}
   .btn-refresh svg{width:18px;height:18px;}
-  .btn-refresh .spinner-ring{transform-origin:50% 50%;animation:none;}
-  .btn-refresh.spinning .spinner-ring{animation:ios-spin 0.9s linear infinite;}
-  @keyframes ios-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .btn-refresh .sp{transform-origin:50% 50%;}
+  .btn-refresh.spinning .sp{animation:ios-fade 0.8s linear infinite;}
+  .btn-refresh.spinning .sp:nth-child(1){animation-delay:0s;}
+  .btn-refresh.spinning .sp:nth-child(2){animation-delay:-0.7s;}
+  .btn-refresh.spinning .sp:nth-child(3){animation-delay:-0.6s;}
+  .btn-refresh.spinning .sp:nth-child(4){animation-delay:-0.5s;}
+  .btn-refresh.spinning .sp:nth-child(5){animation-delay:-0.4s;}
+  .btn-refresh.spinning .sp:nth-child(6){animation-delay:-0.3s;}
+  .btn-refresh.spinning .sp:nth-child(7){animation-delay:-0.2s;}
+  .btn-refresh.spinning .sp:nth-child(8){animation-delay:-0.1s;}
+  @keyframes ios-fade{
+    0%,100%{opacity:1;}
+    12.5%{opacity:0.85;}
+    25%{opacity:0.65;}
+    37.5%{opacity:0.45;}
+    50%{opacity:0.3;}
+    62.5%{opacity:0.2;}
+    75%{opacity:0.12;}
+    87.5%{opacity:0.08;}
+  }
   .btn-parts-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .btn-parts-toggle:hover{border-color:var(--accent2);color:var(--accent2);}
   .btn-parts-toggle.active{background:var(--accent2);border-color:var(--accent2);color:white;}
@@ -65,7 +82,7 @@
   /* Search */
   .search-wrap{width:320px;max-width:380px;margin:0 auto 0 16px;position:relative;display:flex;align-items:center;}
   .search-icon{position:absolute;left:10px;font-size:14px;pointer-events:none;opacity:0.5;}
-  .search-input{width:100%;padding:7px 32px 7px 30px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color 0.15s;}
+  .search-input{width:100%;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color 0.15s;}
   .search-input:focus{border-color:var(--accent);}
   .search-input::placeholder{color:var(--text-muted);}
   .search-clear{position:absolute;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;display:none;padding:2px 4px;border-radius:3px;}
@@ -251,21 +268,21 @@
     .header-row1 .search-wrap{display:none;}
     .header-row3{display:flex;align-items:center;width:100%;position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:0;}
     .header-row3 .search-icon{position:absolute;left:10px;font-size:13px;pointer-events:none;opacity:0.5;}
-    .header-row3 .search-input{width:100%;padding:7px 32px 7px 30px;border-radius:7px;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+    .header-row3 .search-input{width:100%;padding:7px 14px;border-radius:7px;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
     .header-row3 .search-clear{position:absolute;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;display:none;padding:2px 4px;}
     .header-row3 .search-clear.visible{display:block;}
     .header-row2{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
     .header-row2::-webkit-scrollbar{display:none;}
     .header-mobile-search{display:flex;width:100%;position:relative;}
     .header-mobile-search .search-icon{position:absolute;left:10px;font-size:13px;pointer-events:none;opacity:0.5;top:50%;transform:translateY(-50%);}
-    .header-mobile-search .search-input{width:100%;padding:7px 32px 7px 30px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+    .header-mobile-search .search-input{width:100%;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none;}
     .header-mobile-search .search-clear{position:absolute;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;display:none;padding:2px 4px;top:50%;transform:translateY(-50%);}
     .header-mobile-search .search-clear.visible{display:block;}
     .header-row1{display:flex;align-items:center;justify-content:space-between;width:100%;}
     .header-row1 .search-wrap{display:none;}
     .header-row3{display:flex;align-items:center;width:100%;position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:0;}
     .header-row3 .search-icon{position:absolute;left:10px;font-size:13px;pointer-events:none;opacity:0.5;}
-    .header-row3 .search-input{width:100%;padding:7px 32px 7px 30px;border-radius:7px;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+    .header-row3 .search-input{width:100%;padding:7px 14px;border-radius:7px;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
     .header-row3 .search-clear{position:absolute;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;display:none;padding:2px 4px;}
     .header-row3 .search-clear.visible{display:block;}
     .header-row2{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;width:100%;overflow-x:auto;}
@@ -277,7 +294,7 @@
     .header-right .clock-block{display:none;}
     .btn-theme{width:28px;height:28px;font-size:13px;border-radius:6px;}
     .btn-refresh{width:28px;height:28px;border-radius:6px;}
-    .btn-refresh svg{width:14px;height:14px;}
+    .btn-refresh svg{width:13px;height:13px;}
     .btn-add{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
     .btn-ics{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
     .btn-parts-toggle{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
@@ -379,6 +396,11 @@
 
 
 
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -386,7 +408,7 @@
 <!-- 비밀번호 화면 -->
 <div id="pw-screen">
   <div class="pw-box">
-    <h2>🔧 정비 일정</h2>
+    <h2>정비 일정</h2>
     <p>접근하려면 비밀번호를 입력하세요</p>
     <input type="password" class="pw-input" id="pwInput" placeholder="••••" maxlength="20"
       onkeydown="if(event.key==='Enter') checkPw()">
@@ -397,9 +419,9 @@
 
 <header>
   <div class="header-row1">
-    <h1>🔧 정비 일정 <span id="headerMonth"></span></h1>
+    <h1>정비 일정 <span id="headerMonth"></span></h1>
     <div class="search-wrap">
-      <span class="search-icon">🔍</span>
+      
       <input type="text" id="searchInput" class="search-input" placeholder="번호판, 차종, 작업내용 검색..." oninput="onSearch(this.value)">
       <button class="search-clear" id="searchClear" onclick="clearSearch()" title="검색 초기화">✕</button>
     </div>
@@ -411,29 +433,27 @@
   <div class="header-row2">
     <div class="stats"><span>전체 <b id="totalCount">-</b>건</span></div>
     <span class="last-updated" id="lastUpdated"></span>
-    <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일로 일정 갱신">📅 ICS 갱신</button>
+    <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일로 일정 갱신">ICS 갱신</button>
     <input type="file" id="icsFileInput" accept=".ics" style="display:none" onchange="loadICSFile(this)">
-    <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">🔩 발주부품</button>
+    <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">발주부품</button>
     <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="수동 새로고침">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g class="spinner-ring">
-          <line x1="12" y1="2"  x2="12" y2="5.5"  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="1.0"/>
-          <line x1="17.66" y1="3.34"  x2="15.54" y2="5.46"  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.875"/>
-          <line x1="22" y1="12" x2="18.5" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="20.66" y1="17.66" x2="18.54" y2="15.54" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.625"/>
-          <line x1="12" y1="22" x2="12" y2="18.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
-          <line x1="6.34" y1="20.66" x2="8.46" y2="18.54" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.375"/>
-          <line x1="2"  y1="12" x2="5.5"  y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.25"/>
-          <line x1="3.34" y1="6.34" x2="5.46" y2="8.46" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.125"/>
-        </g>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="1.0"  transform="rotate(0   12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.85" transform="rotate(45  12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.65" transform="rotate(90  12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.45" transform="rotate(135 12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.3"  transform="rotate(180 12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.2"  transform="rotate(225 12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.12" transform="rotate(270 12 12)"/>
+        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.07" transform="rotate(315 12 12)"/>
       </svg>
     </button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
-    <button class="btn-add" onclick="openModal()">＋ 일정 추가</button>
+    <button class="btn-add" onclick="openModal()">일정 추가</button>
   </div>
   <!-- 모바일 전용 3번째 줄 검색창 -->
   <div class="header-row3">
-    <span class="search-icon">🔍</span>
+    
     <input type="text" id="searchInputMobile" class="search-input" placeholder="번호판, 차종, 작업내용 검색..." oninput="onSearch(this.value); document.getElementById('searchInput').value=this.value;">
     <button class="search-clear" id="searchClearMobile" onclick="clearSearch(); this.classList.remove('visible');" title="검색 초기화">✕</button>
   </div>
@@ -449,7 +469,7 @@
   <div class="sidebar">
     <!-- 장기 입고 -->
     <div class="sidebar-card">
-      <div class="sb-section-title">🚗 장기 입고 현황 <span id="longCount">0건</span></div>
+      <div class="sb-section-title">장기 입고 현황 <span id="longCount">0건</span></div>
       <div class="long-list" id="longList"><div style="padding:12px 15px;font-size:11px;color:var(--text-muted)">장기 입고 없음</div></div>
     </div>
 
@@ -484,7 +504,7 @@
     <div class="form-group" style="margin-bottom:10px;">
       <label>발주 부품</label>
       <div class="parts-editor" id="partsEditor"></div>
-      <button class="btn-add-part" onclick="addPartField()">＋ 부품 추가</button>
+      <button class="btn-add-part" onclick="addPartField()">부품 추가</button>
     </div>
     <div class="form-group" style="margin-bottom:6px;"><label>상태</label></div>
     <div class="status-toggles">
@@ -508,6 +528,11 @@
     </div>
   </div>
 </div>
+
+
+
+
+
 
 
 
@@ -608,7 +633,7 @@ const DEFAULT_JOBS = [
   {date:"4/1",endDate:"4/4",time:"12:00",model:"F55s",plate:"131조2711",region:"",title:"오전통화하고 탁송진행, 출고도 탁송출고, 오일필터하우징어셈블리, 커넥터,엔진오일교환 뒤쪽하체소음?트렁크소음?",parts:["오일필터하우징"],phone:"",note:"",done:true,cancelled:false},
   {date:"4/1",endDate:"",time:"13:00",model:"F55",plate:"233수6409",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/1",endDate:"",time:"13:00",model:"F57",plate:"64로8844",region:"",title:"().에어컨작동이상,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/1",endDate:"4/11",time:"13:00",model:"F56s",plate:"257더7116",region:"",title:"오일필터하우징 어셈블리 재고없어서 맡기고감",parts:["오일필터하우징"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/1",endDate:"4/8",time:"13:00",model:"F56s",plate:"257더7116",region:"",title:"오일필터하우징 어셈블리 재고없어서 맡기고감",parts:["오일필터하우징"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/1",endDate:"",time:"13:00",model:"F60",plate:"153조8591",region:"",title:"조수석 리어허브베어링 28만",parts:["허브베어링"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/1",endDate:"",time:"14:00",model:"F55",plate:"14모2545",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/1",endDate:"",time:"15:00",model:"F54",plate:"124두9660",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -638,7 +663,7 @@ const DEFAULT_JOBS = [
   {date:"4/2",endDate:"4/4",time:"20:00",model:"R50",plate:"52더7612",region:"",title:"저녁주차하고감 냉각수누점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"10:00",model:"R58",plate:"20어1989",region:"",title:"밋션오일교환,오일량체",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"10:00",model:"F54",plate:"13로0453",region:"",title:"마운트세트3종타이밍커버33,댐퍼풀리점검후교환",parts:["마운트세트", "타이밍커버", "댐퍼풀리"],phone:"",note:"-댐퍼풀리 상태보고 교환추가 상담 -시동걸고 엑셀 밟았다 떼면 소리남, 운행후에는 소리없음",done:false,cancelled:false},
-  {date:"4/3",endDate:"4/10",time:"11:00",model:"F54",plate:"35나0496",region:"",title:"구매점검.핸들돌릴때 소음들림",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/3",endDate:"4/8",time:"11:00",model:"F54",plate:"35나0496",region:"",title:"구매점검.핸들돌릴때 소음들림",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"11:00",model:"F57",plate:"155라6648",region:"",title:"엔진경고등,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"13:00",model:"R60d",plate:"32버5476",region:"",title:"[견인입고].주행중 속도가 줄어들때 시동꺼짐,dpf관련문제 아니면 맡기고감",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"13:00",model:"F60",plate:"32다1604",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -652,7 +677,7 @@ const DEFAULT_JOBS = [
   {date:"4/3",endDate:"",time:"16:00",model:"F54",plate:"63부7510",region:"",title:"구매점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"17:00",model:"F55",plate:"165어8860",region:"",title:"엔진오일교환, 뒤패드점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/3",endDate:"",time:"16:30",model:"R60d",plate:"26서1007",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/3",endDate:"4/12",time:"종일",model:"R60d",plate:"32버5476",region:"",title:"[견인입고].헤드커버어셈블리+@.작업후 연료쪽 재점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/3",endDate:"4/9",time:"종일",model:"R60d",plate:"32버5476",region:"",title:"[견인입고].헤드커버어셈블리+@.작업후 연료쪽 재점검",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"4/4",endDate:"",time:"10:00",model:"F56",plate:"108가5791",region:"",title:"핸들소음점검",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"4/4",endDate:"",time:"10:00",model:"F55",plate:"354머8876",region:"",title:"밋션오일,차량점검",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"4/4",endDate:"",time:"10:00",model:"R50",plate:"64나7794",region:"",title:"자동차검사 재검",parts:[],phone:"",note:"",done:true,cancelled:false},
@@ -669,7 +694,7 @@ const DEFAULT_JOBS = [
   {date:"4/4",endDate:"",time:"15:00",model:"F55",plate:"66두5484",region:"",title:"().차량전체점검후상담후진행후",parts:[],phone:"",note:"-서비스센터 점검 : 흡기가이드 접착 불량 : 헤드라이트 링 x 2 : 마운트 상태 안좋다 함",done:false,cancelled:false},
   {date:"4/4",endDate:"",time:"15:00",model:"F57",plate:"128어6431",region:"",title:"엔진오일교환,마운트상태점검 냉간첫시동시 소음하고떨림 심하다고함",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/4",endDate:"",time:"15:30",model:"F54",plate:"66구5972",region:"",title:"누유 점검",parts:[],phone:"",note:"2026/02/07  헤드커버, 컨트롤암, RH조인트 수리 이력 차량, 바닥에 누유가 보여 집앞 카센터에서 점검해보고 긴급으로 점검 예약함.",done:false,cancelled:false},
-  {date:"4/4",endDate:"4/12",time:"종일",model:"R56",plate:"68우2488",region:"",title:"견인입고, 냉각수 누수, 시동 불량, 엔진 부조, 장기 입고",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/4",endDate:"4/8",time:"종일",model:"R56",plate:"68우2488",region:"",title:"견인입고, 냉각수 누수, 시동 불량, 엔진 부조, 장기 입고",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/5",endDate:"4/11",time:"17:00",model:"R57",plate:"11두6261",region:"",title:"일요일주차하고감 서모스탯,물파이프,번호판볼트,제동시소음점검,오일보충",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/6",endDate:"",time:"10:00",model:"F60",plate:"117주9181",region:"",title:"엔진오일,기본점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/6",endDate:"4/7",time:"10:00",model:"R60s",plate:"34모5324",region:"",title:"오일팬 재작업",parts:["오일팬"],phone:"",note:"",done:false,cancelled:false},
@@ -695,37 +720,35 @@ const DEFAULT_JOBS = [
   {date:"4/7",endDate:"",time:"11:00",model:"F55d",plate:"62소0442",region:"",title:"촉매뒤 산소센서",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"13:00",model:"R56",plate:"339서9018",region:"",title:"하체작업,에어컨점검. - 일단취소",parts:[],phone:"",note:"-로워암 부싱 / 볼조인트 / Fr. 활대링크, 활대부싱 / Re. 활대링크, 활대부싱",done:true,cancelled:true},
   {date:"4/7",endDate:"",time:"13:00",model:"F55",plate:"21수6050",region:"",title:"Rh인터쿨러파이프 어셈블리",parts:["인터쿨러파이프"],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/7",endDate:"4/10",time:"13:00",model:"R55",plate:"47머8877",region:"",title:"헤드작업, 냉각수 플러싱",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"13:00",model:"F60",plate:"148머8982",region:"",title:"엔진마운트단품,DCT미션오일",parts:["엔진마운트"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"13:00",model:"F55",plate:"383머2353",region:"",title:"엔진오일,DCT미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"14:00",model:"R56",plate:"225루2578",region:"",title:"주유후시동잘안걸림,시동꺼짐1회있었음",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"14:00",model:"F54",plate:"03로6236",region:"",title:"엔진오일교환, 차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"15:00",model:"F54",plate:"54다6095",region:"",title:"().브레이크등점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/7",endDate:"",time:"15:00",model:"F57d",plate:"46구0248",region:"",title:"댐퍼풀리세트, 운)상단인터쿨러파이프오링 환기파이프",parts:["댐퍼풀리세트", "환기파이프", "인터쿨러파이프"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/7",endDate:"",time:"15:00",model:"F56d",plate:"46구0248",region:"",title:"댐퍼풀리세트, 운)상단인터쿨러파이프오링 환기파이프",parts:["댐퍼풀리세트", "환기파이프", "인터쿨러파이프"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"16:00",model:"R57s",plate:"170주1856",region:"",title:"엔진오일교환, 고압펌프지참교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"16:00",model:"R55",plate:"55모9684",region:"",title:"정차시 엔진부조,연료량점검 취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"4/7",endDate:"",time:"16:00",model:"R60d",plate:"58무9596",region:"",title:"미립자필터경고등점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"17:00",model:"R60",plate:"24라6902",region:"",title:"().엔진오일,브레이크액점검후교환,전구류점검.차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/7",endDate:"",time:"17:00",model:"F54",plate:"54더9495",region:"",title:"중고구매점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/8",endDate:"4/9",time:"09:00",model:"R56s",plate:"23거5905",region:"",title:"헤드커버어셈블리, 벨트세트,워터펌프, 프론트쇼바 좌,우",parts:["워터펌프", "벨트세트"],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"10:00",model:"F55",plate:"09서0503",region:"",title:"엔진오일교환, 에어컨필터",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"10:00",model:"F60",plate:"04누2384",region:"",title:"().엔진오일,에어컨필터, 차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"11:00",model:"F56",plate:"10로8333",region:"",title:"엔진오일,에어컨필터,차량점검. - 취소",parts:[],phone:"",note:"",done:false,cancelled:true},
+  {date:"4/8",endDate:"",time:"10:00",model:"F55",plate:"09서0503",region:"",title:"엔진오일교환, 에어컨필터",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"10:00",model:"F60",plate:"04누2384",region:"",title:"().엔진오일,에어컨필터, 차량점검",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"11:00",model:"F56",plate:"10로8333",region:"",title:"엔진오일,에어컨필터,차량점검. - 취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"4/8",endDate:"",time:"11:00",model:"F55",plate:"385노9944",region:"",title:"엔진경고등. 스케줄관계로취소",parts:[],phone:"",note:"-16년식 디젤, 경고등 들어온지 약 1개월 됐다 함, 별다른 증상은 못느꼈다 함",done:true,cancelled:true},
   {date:"4/8",endDate:"",time:"11:00",model:"R60d",plate:"69보0246",region:"",title:"견인입고, 누유가심해서 운행하면 오일이 떨어진다고함, 취소",parts:[],phone:"",note:"",done:true,cancelled:true},
-  {date:"4/8",endDate:"",time:"13:00",model:"F54",plate:"31루0641",region:"",title:"엔진오일,차량점검. 조금늦어질수있슴",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"13:00",model:"R53",plate:"37구3848",region:"",title:"엔진오일교환, 산소센서지참교환, 에어컨개스점검,냉각수점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/8",endDate:"",time:"13:00",model:"F54",plate:"31루0641",region:"",title:"엔진오일,차량점검. 조금늦어질수있슴",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"13:00",model:"R53",plate:"37구3848",region:"",title:"엔진오일교환, 산소센서지참교환, 에어컨개스점검,냉각수점검",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"4/8",endDate:"4/9",time:"13:00",model:"F57",plate:"35나0560",region:"",title:"필터하우징,헤드-탱크파이프",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"14:00",model:"F55",plate:"143우7973",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"14:00",model:"F60",plate:"317노9183",region:"",title:"엔진마운트세트",parts:["마운트세트", "엔진마운트"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/8",endDate:"",time:"14:00",model:"F55",plate:"143우7973",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"14:00",model:"F60",plate:"317노9183",region:"",title:"엔진마운트세트",parts:["마운트세트", "엔진마운트"],phone:"",note:"",done:true,cancelled:false},
   {date:"4/8",endDate:"",time:"15:00",model:"F55",plate:"54어1528",region:"",title:"브레이크액 알람",parts:[],phone:"",note:"",done:true,cancelled:false},
-  {date:"4/8",endDate:"",time:"15:00",model:"R56",plate:"51구8879",region:"",title:"차량전체점검후상담",parts:[],phone:"",note:"-26.01 엔진오일 플러싱 및 플러그-코일 교환 이력 있음 -이외에 점검 내용-이후 작업 안내 필요",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"15:00",model:"F57",plate:"64로8844",region:"",title:"블로워모터28만레지스터정품,27만",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"16:00",model:"R55",plate:"27서7734",region:"",title:"차량전체점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"16:00",model:"F55",plate:"47두5076",region:"",title:"엔진경고등,엔진오일.차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"17:00",model:"F56",plate:"05어3050",region:"",title:"엔진오일교환,엔진경고등,테일램프캐리어,커넥터점검,최근전구교환했다고함",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/8",endDate:"",time:"17:00",model:"F54",plate:"310부5965",region:"",title:"DCT 오일 교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/9",endDate:"4/10",time:"10:00",model:"F54",plate:"123다5088",region:"",title:"운)등속a/s 예정 점검후 작업진행",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/8",endDate:"",time:"15:00",model:"R56",plate:"51구8879",region:"",title:"차량전체점검후상담",parts:[],phone:"",note:"-26.01 엔진오일 플러싱 및 플러그-코일 교환 이력 있음 -이외에 점검 내용-이후 작업 안내 필요",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"15:00",model:"F57",plate:"64로8844",region:"",title:"블로워모터28만레지스터정품,27만",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"16:00",model:"R55d",plate:"27서7734",region:"",title:"차량전체점검",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"16:00",model:"F55",plate:"47두5076",region:"",title:"엔진경고등,엔진오일.차량점검",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"17:00",model:"F56",plate:"05어3050",region:"",title:"엔진오일교환,엔진경고등,테일램프캐리어,커넥터점검,최근전구교환했다고함",parts:[],phone:"",note:"",done:true,cancelled:false},
+  {date:"4/8",endDate:"",time:"17:00",model:"F54",plate:"310부5965",region:"",title:"DCT 오일 교환",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"4/9",endDate:"",time:"10:00",model:"F54",plate:"123저5330",region:"",title:"열관리모듈65만, 댐퍼풀리세트, 언덕에서정차시 뒤로밀리는경우있슴",parts:["댐퍼풀리세트"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/9",endDate:"4/11",time:"10:00",model:"R56d",plate:"32부4158",region:"",title:"DPF크리닝,터보",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/9",endDate:"",time:"10:00",model:"F56",plate:"06수3752",region:"",title:"엔진오일,전구류점검.차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -744,18 +767,23 @@ const DEFAULT_JOBS = [
   {date:"4/9",endDate:"",time:"16:00",model:"R56",plate:"68우2414",region:"",title:"엔진오일,냉각수부족해보인다함,냉간시동시탄내난다함",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/9",endDate:"",time:"17:00",model:"F54",plate:"254루9829",region:"",title:"().브레이크액점검후교환.와이퍼 앞,뒤",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/9",endDate:"",time:"17:00",model:"R58",plate:"245두2962",region:"",title:"차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/9",endDate:"",time:"17:00",model:"F55",plate:"62소0442",region:"",title:"엔진경고등",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"10:00",model:"R57",plate:"23마2481",region:"",title:"엔진오일교환, 운)테일램프전구 점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"10:00",model:"R60",plate:"24마2840",region:"",title:"에어컨필터,오일량체크",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"11:00",model:"F56",plate:"159보5486",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/10",endDate:"",time:"11:00",model:"X4",plate:"123우3088",region:"",title:"엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/10",endDate:"",time:"11:00",model:"F56",plate:"01라6752",region:"",title:"DCT어댑테이션",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/10",endDate:"",time:"11:00",model:"R53",plate:"68부6161",region:"",title:"().차량점검.[내용]",parts:[],phone:"",note:"-브레이크밟거나 내리막에서 하체쪽 소음 있다 함 (뭔가 부딪히는듯한 소리) -핸들이 많이 무거워짐 : 주행중엔 좀 괜찮아짐",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"13:00",model:"F54",plate:"167라4612",region:"",title:"엔진-미션마운트,뒤쇼바. - 변경예정",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"13:00",model:"F56",plate:"293고8795",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"13:00",model:"R60",plate:"46부9571",region:"",title:"에어컨점검+냉매충전",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"14:00",model:"F56",plate:"101버4684",region:"",title:"엔진오일,브레이크액점검,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/10",endDate:"",time:"14:00",model:"R52",plate:"112머2464",region:"",title:"챠져소음처럼들림",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"15:00",model:"R60",plate:"37수3021",region:"",title:"트렁크로크교환, -열림",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"4/10",endDate:"",time:"15:00",model:"F60",plate:"372마7371",region:"",title:"엔진오일,브레이크액,패드점검후교환",parts:[],phone:"",note:"-오일14.5",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"15:00",model:"F55",plate:"36보3494",region:"",title:"에어컨점검.시동걸면소리남.마운트체크.차량점검",parts:[],phone:"",note:"-에어컨 켜면 바람이 차갑지 않고 소리가 남 (쇠갈리는 듯한 소리라 하심) -냉간시 시동걸면 딱-딱-딱 소리가 박자에 맞춰서 남, 주행중엔 없음",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"16:00",model:"F60",plate:"129우3042",region:"",title:"().배터리,엔진오일,와이퍼작동점검",parts:[],phone:"",note:"-와이퍼 교환했고, 유막제거도 했는데 잘 안닦인다 함",done:false,cancelled:false},
+  {date:"4/10",endDate:"",time:"16:00",model:"",plate:"163라3033",region:"",title:"f56..().운전석사이드미러점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/10",endDate:"",time:"16:00",model:"F55",plate:"170가9052",region:"",title:"().배터리교환,엔진경고등",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"17:00",model:"F54",plate:"129구3882",region:"",title:"엔진오일,기본점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/10",endDate:"",time:"17:00",model:"R56",plate:"32도4085",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/11",endDate:"",time:"10:00",model:"F60",plate:"04너1201",region:"",title:"마운트세트",parts:["마운트세트"],phone:"",note:"",done:true,cancelled:false},
@@ -777,27 +805,31 @@ const DEFAULT_JOBS = [
   {date:"4/11",endDate:"",time:"15:00",model:"F54",plate:"127러8663",region:"",title:"엔진오일교환, 엔진경고등체크, 구동장치알람",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/11",endDate:"4/16",time:"종일",model:"R53",plate:"07저3507",region:"",title:"엔진경고등, 등속 좌,우 재생, 미션오일, 타이밍 커버, 오일팬, 파워 리턴 호스",parts:["오일팬"],phone:"",note:"엔진 경고등은 지난번 연료 탱크 환기 밸브 교환 했는데, 연료 환기라인쪽 미세누설 예상되어서 순차적인 점검 필요.",done:false,cancelled:false},
   {date:"4/12",endDate:"4/15",time:"16:00",model:"R60d",plate:"62스4258",region:"",title:"배기가스누설확인작업후 Dpf,터보쪽 작업진행할수 있슴 010 4144 1139",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/13",endDate:"",time:"07:00",model:"",plate:"",region:"",title:"작업장 문 수리",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/13",endDate:"4/18",time:"13:00",model:"R55",plate:"47머8877",region:"",title:"헤드작업, 냉각수 플러싱",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"10:00",model:"F55",plate:"112도2337",region:"",title:"차량점검후뒤패드,뒤디스크",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"10:00",model:"R56",plate:"53라8917",region:"",title:"오일압력경고등점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"4/15",time:"10:00",model:"R53",plate:"04주2614",region:"",title:"배터리 경고등 , 전구 점검",parts:[],phone:"",note:"배터리 경고등 점등후 EML, 엔진경고등 - 배터리 경고등은 에어컨 끄니까 괜찮아졌으나 출력이 제한 됨. 전구는 조수석 안개등, 조수석 브레이크등 이라고 함. 전체 전구 점검 필요.  견인 입고후 점검 - 상담 예정",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"11:00",model:"F54",plate:"15너3784",region:"",title:"하체점검,LH범퍼등교환,실내등퓨즈점검,차량점검",parts:[],phone:"",note:"-집근처 업체에서 스프링 깨졌다고 들었다 함.  : 핸들돌릴때 소리도나고, 저속에서 커브 돌때도 소음 난다 함",done:false,cancelled:false},
-  {date:"4/14",endDate:"",time:"11:00",model:"F56",plate:"228우2787",region:"",title:"().엔진오일,DCT오일.[오전11시입고,오후6시전출고]",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"11:00",model:"F54",plate:"309머7264",region:"",title:"변속기오일알람, 구동장치알람",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/14",endDate:"",time:"11:00",model:"F56",plate:"228우2787",region:"",title:"().엔진오일,DCT오일.[오전11시입고,오후6시전출고]",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"13:00",model:"F60",plate:"116무1428",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"13:00",model:"F66",plate:"328주3687",region:"",title:"[신차]엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"14:00",model:"R56",plate:"16머9609",region:"",title:"마운트세트,배터리지참교환",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"14:00",model:"R56",plate:"20가4128",region:"",title:"누유-전체점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"4/18",time:"15:00",model:"R57s",plate:"380수2273",region:"",title:"견인입고,시동걸면 바로꺼짐 1윌에 고압펌프 교환했슴",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/14",endDate:"",time:"15:00",model:"",plate:"228두4658",region:"",title:"f54...엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"16:00",model:"F54",plate:"03주7646",region:"",title:"누수점검,브레이크등결함,엔진오일점검후교환,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"16:00",model:"F55",plate:"129버3059",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/14",endDate:"",time:"17:00",model:"F54",plate:"378고5504",region:"",title:"변속기오일알람, 뒤패드점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/14",endDate:"",time:"17:00",model:"R53",plate:"09더9010",region:"",title:"차량구매점검",parts:[],phone:"",note:"-브레이크페달이 쑥 들어갔었음 (1회)",done:false,cancelled:false},
   {date:"4/15",endDate:"",time:"10:00",model:"F55",plate:"25루5305",region:"",title:"RH.헤드라이트크롬링,LH.등속,타이밍커버,워셔액점검,브레이크액점검",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"",time:"10:00",model:"R53",plate:"20머4910",region:"",title:"클러치실린더지참교환, 로워암부싱세트 ,15프로벨트교환",parts:["로워암부싱세트", "클러치"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"4/18",time:"11:00",model:"R60",plate:"36우3553",region:"",title:"견인입고,맡기고감 최대출력감소,엔진경고등떳다가 사라짐",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/15",endDate:"",time:"11:00",model:"R60d",plate:"59서1699",region:"",title:"맡기고감 엔진오일교환, 에어컨개스 점검,냉각수누수점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"4/17",time:"11:00",model:"R60d",plate:"47루9340",region:"",title:"오전8시30분 탁송진행,출고도 탁송출고 미립자필터경고등,rpm부조, DPF크리닝,터보,언더커버소리남,밋션오일교환 예정",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/15",endDate:"",time:"11:00",model:"R56d",plate:"43보1328",region:"",title:"엔진오일교환, 차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/15",endDate:"",time:"11:00",model:"R56d",plate:"43보1328",region:"",title:"엔진오일교환14만5천, 차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"",time:"13:00",model:"F54",plate:"69조4864",region:"",title:"마운트세트,타이밍커버,브레이크액점검후,차량점검",parts:["마운트세트", "타이밍커버"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/15",endDate:"",time:"13:00",model:"F54",plate:"59두6793",region:"",title:"엔진오일교환, 타이밍커버",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"",time:"15:00",model:"F54",plate:"369무1347",region:"",title:"엔진오일,미션오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"",time:"15:00",model:"F54",plate:"50노2363",region:"",title:"엔진오일,브레이크액,정차시웅웅거림",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/15",endDate:"",time:"16:00",model:"F60",plate:"54고4608",region:"",title:"타이밍커버",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
@@ -811,17 +843,24 @@ const DEFAULT_JOBS = [
   {date:"4/16",endDate:"",time:"13:00",model:"R56",plate:"334루5752",region:"",title:"마운트세트3종, 오일압력스위치,누설진단펌프",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/16",endDate:"",time:"13:00",model:"F56",plate:"66두5057",region:"",title:"엔진오일,리어브레이크소음",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/16",endDate:"",time:"14:00",model:"F56",plate:"67모2211",region:"",title:"엔진오일교환, 브레이크액알람",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/16",endDate:"",time:"15:00",model:"R60d",plate:"46부9583",region:"",title:"엔진오일교환, 브레이크액점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/16",endDate:"",time:"15:00",model:"F56",plate:"65마1144",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/16",endDate:"",time:"16:00",model:"R60",plate:"58루9668",region:"",title:"주행후정차했을때시동꺼짐",parts:[],phone:"",note:"-5~6년전 DPF관련 작업 다 했다 함 -2~3년전에도 시동꺼짐 있었음 -고속주행후 정차시 시동꺼짐, 잠시후 시동 걸림",done:false,cancelled:false},
+  {date:"4/16",endDate:"",time:"16:00",model:"R56",plate:"245조1177",region:"",title:"().엔진경고등.차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/16",endDate:"",time:"17:00",model:"F54",plate:"54우6400",region:"",title:"RH.범퍼등,패드점검후교환,사이드미러점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/16",endDate:"",time:"17:00",model:"F54",plate:"62소0450",region:"",title:"전구류점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"10:00",model:"R60",plate:"47라3524",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"10:00",model:"F55",plate:"19무0335",region:"",title:"에어컨필터,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"11:00",model:"F57",plate:"387노1892",region:"",title:"엔진오일,DCT미션오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"11:00",model:"F60",plate:"159보5492",region:"",title:"().엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/17",endDate:"",time:"13:00",model:"F56",plate:"249저1911",region:"",title:"구매점검, 엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"13:00",model:"F56",plate:"08소5926",region:"",title:"워터펌프어셈블리교환",parts:["워터펌프어셈블리"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/17",endDate:"",time:"13:00",model:"F56",plate:"249저1911",region:"",title:"구매점검, 엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"14:00",model:"F55",plate:"68가8061",region:"",title:"().엔진오일,에어컨필터,브레이크액점검후,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"14:00",model:"F56",plate:"19고0875",region:"",title:"엔진경고등체크",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/17",endDate:"",time:"15:00",model:"F56",plate:"384루3364",region:"",title:"번호판플레이트, 크롬그릴",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/17",endDate:"",time:"16:30",model:"F54",plate:"50모3977",region:"",title:"엔진오일,브레이크등점검,와이퍼교환,배터리점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/17",endDate:"",time:"16:00",model:"F55",plate:"103라5351",region:"",title:"DCT미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/17",endDate:"",time:"17:00",model:"F54",plate:"50모3977",region:"",title:"엔진오일,브레이크등점검,와이퍼교환,배터리점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/17",endDate:"",time:"17:00",model:"F56",plate:"11수9293",region:"",title:"엔진오일,소음점검,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/18",endDate:"",time:"10:00",model:"F54",plate:"17도1493",region:"",title:"타이밍커버점검후작업",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/18",endDate:"",time:"10:00",model:"F54",plate:"376버8530",region:"",title:"변속기오일알람, 구동장치알람",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/18",endDate:"",time:"10:00",model:"F60",plate:"170너7835",region:"",title:"마운트세트3종 브레이크패드 점검후교환",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
@@ -833,19 +872,28 @@ const DEFAULT_JOBS = [
   {date:"4/18",endDate:"",time:"14:00",model:"F56",plate:"47도7864",region:"",title:"차량전체점검",parts:[],phone:"",note:"-최근 출력이 예전같지 않은게 느껴진다 하심, DPF 작업 가능 여부, 금액 문의 : F56D, 17y' , 주행거리 150,000km 돌파",done:false,cancelled:false},
   {date:"4/18",endDate:"",time:"14:00",model:"F55",plate:"238서9180",region:"",title:"변속기 오류 , 브레이크 패드 점검, 방지턱 소음 점검",parts:[],phone:"",note:"도면상 자동변속기 사양, 쉬프트 레버 고장일듯",done:false,cancelled:false},
   {date:"4/18",endDate:"",time:"15:00",model:"F55",plate:"309머7250",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/18",endDate:"",time:"15:00",model:"F55",plate:"103라5351",region:"",title:"DCT미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/18",endDate:"",time:"15:00",model:"F56",plate:"378고5591",region:"",title:"DCT미션오일,엔진오일.기본점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/18",endDate:"",time:"15:00",model:"R60",plate:"22도1257",region:"",title:"구매점검후엔진오일,B액.[내용]",parts:[],phone:"",note:"-뒷좌석 폴딩시 소음 없음, 서있을떄 달달거림",done:false,cancelled:false},
   {date:"4/20",endDate:"",time:"10:00",model:"R52",plate:"51보0726",region:"",title:"파워오일누유재점검",parts:[],phone:"",note:"-26.03.13 파워석션호스 교환함 파워오일탱크 아래쪽에 누유 보인다 함 (석션-리턴 확실치않음) -석션일경우 A/S 작업 그 외의 작업일경우 일정 예약 필요",done:false,cancelled:false},
   {date:"4/20",endDate:"",time:"10:00",model:"F56",plate:"24라6252",region:"",title:"냉각수점검..에어컨점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/20",endDate:"4/22",time:"10:00",model:"R56d",plate:"15누2748",region:"",title:"DPF크리닝,터보점검후 교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/20",endDate:"",time:"11:00",model:"R58",plate:"38도4122",region:"",title:"구매점검후 엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/20",endDate:"",time:"13:00",model:"F56",plate:"10머0897",region:"",title:"마운트세트,환기파이프,댐퍼풀리세트",parts:["마운트세트", "댐퍼풀리세트", "환기파이프"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/20",endDate:"",time:"13:00",model:"F57",plate:"02구0961",region:"",title:"마운트세트3종, 플러그씰 브레이크액, 조수석등속수리",parts:["마운트세트", "플러그씰"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/20",endDate:"",time:"16:00",model:"R56",plate:"41조1921",region:"",title:"[굿우드].엔진후드크롬몰딩,에어컨필터,와이퍼교환.차량점검[내용확인필요]",parts:[],phone:"",note:"-배터리 점검 -에어컨 점검 -브레이크액 충분치 않다는 메세지가 들어왔다 없어졌다 함 -벨트세트 점검 -워셔액, 조수석쪽 안나옴 점검 -그 외 누유 누수 점검",done:false,cancelled:false},
   {date:"4/20",endDate:"",time:"17:00",model:"F56",plate:"255나6136",region:"",title:"변속기오일알람, 구동장치알람",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/21",endDate:"",time:"10:00",model:"R56",plate:"15도8778",region:"",title:"테인쇼바+쇼바부자재,로워암부싱,볼조인트,Fr활대링크-활대부싱,벨트세트+워터펌프,풀리,오일압력제어밸브+오일팬,오일교환",parts:["워터펌프", "오일팬", "벨트세트", "볼조인트", "링크", "부싱", "오일압력제어밸브"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/21",endDate:"",time:"10:00",model:"F55",plate:"184머1757",region:"",title:"DCT미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/21",endDate:"",time:"11:00",model:"F56",plate:"50어5889",region:"",title:"차량전체점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/21",endDate:"",time:"13:00",model:"F56",plate:"66구7768",region:"",title:"마운트세트,엔진오일",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/21",endDate:"",time:"17:00",model:"T56s",plate:"265너2724",region:"",title:"차량점검,문자내용 확인후 견적",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/22",endDate:"",time:"10:00",model:"R53",plate:"02로9933",region:"",title:"[전날밤입고,밤늦게출고].엔진오일,미션오일.차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/22",endDate:"",time:"10:00",model:"F56",plate:"341러4327",region:"",title:"뒤패드점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/22",endDate:"",time:"11:00",model:"F54",plate:"08로6591",region:"",title:"엔진오일교환, 브레이크액점검후교환, 서비스체크",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/22",endDate:"",time:"11:00",model:"R52s",plate:"13부1743",region:"",title:"엔진오일교환, 브레이크액 점검후교환, 제동시밀리는느낌있다고함",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/22",endDate:"",time:"13:00",model:"R55",plate:"54루4751",region:"",title:"전구점검후자동차검사후엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/22",endDate:"",time:"13:00",model:"R60sd",plate:"05소9340",region:"",title:"마운트세트3종",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/22",endDate:"",time:"15:00",model:"F56",plate:"05어3050",region:"",title:"댐퍼풀리세트, Rh인터쿨러호스어셈블리",parts:["댐퍼풀리세트"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/23",endDate:"4/25",time:"10:00",model:"R60d",plate:"101도6767",region:"",title:"Dpf크리닝, 엔진교환하고 터보 교환했다고함",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/23",endDate:"",time:"13:00",model:"F54",plate:"310부5930",region:"",title:"마운트세트3종, 타이밍커버",parts:["마운트세트", "타이밍커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"4/24",endDate:"4/29",time:"10:00",model:"R60",plate:"12노4973",region:"",title:"().DPF,터보작업",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -863,10 +911,18 @@ const DEFAULT_JOBS = [
   {date:"4/25",endDate:"",time:"14:00",model:"F60",plate:"156노9347",region:"",title:"엔진오일,DCT오일,타이어위치교환,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/25",endDate:"",time:"14:00",model:"F56",plate:"313루6621",region:"",title:"차량전체점검..[댐퍼풀리세트 추가가능성 있음]",parts:["댐퍼풀리세트"],phone:"",note:"-시동걸면 쨱쨱거림, 4~50km/h 이상 달리면 없어짐 : 댐퍼풀리일경우 당일 교환 원함 -엔진경고등 들어옴",done:false,cancelled:false},
   {date:"4/25",endDate:"",time:"15:00",model:"F56",plate:"07어5664",region:"",title:"미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"4/25",endDate:"",time:"15:00",model:"F56",plate:"284더7247",region:"",title:"변속기오일알람, 구동장치알람, 엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/25",endDate:"",time:"15:00",model:"F56",plate:"284더7247",region:"",title:"변속기오일알람, 구동장치알람, 엔진오일교환14만5천",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/26",endDate:"4/28",time:"종일",model:"",plate:"",region:"",title:"야유회",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/28",endDate:"",time:"10:00",model:"F60",plate:"312수4822",region:"",title:"엔진오일교환,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/28",endDate:"",time:"14:00",model:"F54",plate:"240다5749",region:"",title:"마운트세트",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
+  {date:"4/29",endDate:"4/30",time:"10:00",model:"F54",plate:"123다5088",region:"",title:"운)등속a/s 예정 점검후 작업진행",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"4/29",endDate:"",time:"10:00",model:"G32",plate:"",region:"",title:"630i..엔진오일,미션오일,디퍼런셜오일",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/1",endDate:"",time:"10:00",model:"R56d",plate:"17구6481",region:"",title:"헤드커버어셈블리, 환기파이프, 95만,세척많으면 세척비용추가",parts:["환기파이프"],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/2",endDate:"",time:"10:00",model:"F60",plate:"25수2499",region:"",title:"엔진오일,밋션오일,차량점검,패드,디스크점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/2",endDate:"",time:"10:00",model:"F60",plate:"340어7969",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/2",endDate:"",time:"11:00",model:"R59",plate:"25머8292",region:"",title:"엔진오일,차량점검,하체점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/2",endDate:"",time:"14:00",model:"F56",plate:"68라7252",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/2",endDate:"",time:"15:00",model:"R50",plate:"358어6324",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
 ];
 
 (function() {
@@ -1073,7 +1129,7 @@ function renderSchedule() {
   container.innerHTML = '';
   const totalVisible = JOBS.filter(j => jobMatchesSearch(j)).length;
   if (searchQuery && totalVisible === 0) {
-    container.innerHTML = '<div class="search-empty">🔍 <b>"' + searchQuery + '"</b> 검색 결과가 없습니다.</div>';
+    container.innerHTML = '<div class="search-empty"><b>"' + searchQuery + '"</b> 검색 결과가 없습니다.</div>';
     return;
   }
   const byDate = {};
@@ -1112,8 +1168,8 @@ function renderSchedule() {
       card.className = 'job-card'+(job.done?' is-done':'')+(job.cancelled?' is-cancelled':'');
       const endStr = job.endDate ? `<br><span style="font-size:10px;opacity:.5">→${job.endDate}</span>` : '';
       const badge = job.cancelled ? '<span class="status-badge badge-cancel">취소</span>' : job.done ? '<span class="status-badge badge-done">완료</span>' : '';
-      const noteHtml = job.note ? `<div class="job-note">💬 ${highlight(job.note, searchQuery)}</div>` : '';
-      const phoneHtml = job.phone ? `<div class="phone">📞 ${highlight(job.phone, searchQuery)}</div>` : '';
+      const noteHtml = job.note ? `<div class="job-note">${highlight(job.note, searchQuery)}</div>` : '';
+      const phoneHtml = job.phone ? `<div class="phone">${highlight(job.phone, searchQuery)}</div>` : '';
       const vinHtml = job.region ? (() => {
         const v = job.region;
         if (v.length <= 7) return `<span class="vin"><span style="color:var(--red);font-weight:700;">${v}</span></span>`;
@@ -1131,8 +1187,8 @@ function renderSchedule() {
           return `<div>
             <div class="part-row${chk}" id="p-${ji}-${pi}">
               <div class="cb-box" onclick="togglePart(${ji},${pi})">${CHECK_SVG}</div>
-              <span class="part-label" onclick="togglePart(${ji},${pi})">🔩 ${part}</span>
-              <button class="part-memo-btn${hasMemo?' has-memo':''}" id="pmb-${ji}-${pi}" onclick="togglePartMemo(${ji},${pi})" title="메모">📝</button>
+              <span class="part-label" onclick="togglePart(${ji},${pi})">${part}</span>
+              <button class="part-memo-btn${hasMemo?' has-memo':''}" id="pmb-${ji}-${pi}" onclick="togglePartMemo(${ji},${pi})" title="메모">메모</button>
             </div>
             <div class="part-memo-wrap${hasMemo?' always':''}" id="pmw-${ji}-${pi}">
               ${hasMemo
@@ -1156,8 +1212,8 @@ function renderSchedule() {
           ${noteHtml}${phoneHtml}${partsHtml}
         </div>
         <div class="card-actions">
-          <button class="btn-icon" onclick="openModal(${ji})">✏️</button>
-          <button class="btn-icon btn-del" onclick="askDelete(${ji})">🗑️</button>
+          <button class="btn-icon" onclick="openModal(${ji})">수정</button>
+          <button class="btn-icon btn-del" onclick="askDelete(${ji})">삭제</button>
         </div>`;
       section.appendChild(card);
     });
@@ -1266,9 +1322,9 @@ function buildSidePanels() {
       const dayCls = j.days >= 7 ? 'warn' : j.days >= 3 ? 'caution' : 'ok';
       const ddCls  = dLeft !== null ? (dLeft <= 1 ? 'warn' : dLeft <= 3 ? 'caution' : 'ok') : 'ok';
       const ddLabel = dLeft === null ? '' : dLeft > 0 ? `D-${dLeft} 출고예정` : dLeft === 0 ? 'D-Day 출고' : '출고일 경과';
-      const phoneRow = j.phone ? `<div class="long-card-expand-row">📞 <b>연락처</b> ${j.phone}</div>` : '';
-      const vinRow   = j.region? `<div class="long-card-expand-row">🔖 <b>차대번호</b> ${j.region}</div>` : '';
-      const noteRow  = j.note  ? `<div class="long-card-expand-row">💬 <b>메모</b> ${j.note}</div>` : '';
+      const phoneRow = j.phone ? `<div class="long-card-expand-row"><b>연락처</b> ${j.phone}</div>` : '';
+      const vinRow   = j.region? `<div class="long-card-expand-row"><b>차대번호</b> ${j.region}</div>` : '';
+      const noteRow  = j.note  ? `<div class="long-card-expand-row"><b>메모</b> ${j.note}</div>` : '';
       const partsRow = ''; // 발주부품 사이드바 미표시
       return `<div class="long-card" id="lc-${idx}" onclick="toggleLongCard(${idx})">
         <div class="long-card-top">
@@ -1282,7 +1338,7 @@ function buildSidePanels() {
           </div>
         </div>
         <div class="long-card-title">${j.title||''}</div>
-        <div class="long-card-dates">📅 ${j.date} → ${j.endDate}</div>
+        <div class="long-card-dates">${j.date} → ${j.endDate}</div>
         ${ddLabel ? `<div class="long-card-dday ${ddCls}">⏱ ${ddLabel}</div>` : ''}
         <div class="long-card-expand" id="lce-${idx}">
           ${noteRow}${phoneRow}${vinRow}${partsRow}
@@ -1868,6 +1924,11 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
+
+
+
+
 
 
 
