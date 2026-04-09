@@ -47,25 +47,25 @@
   .btn-refresh{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;padding:0;}
   .btn-refresh:hover{border-color:var(--green);}
   .btn-refresh svg{width:18px;height:18px;}
-  .btn-refresh .sp{transform-origin:50% 50%;}
-  .btn-refresh.spinning .sp{animation:ios-fade 0.8s linear infinite;}
-  .btn-refresh.spinning .sp:nth-child(1){animation-delay:0s;}
-  .btn-refresh.spinning .sp:nth-child(2){animation-delay:-0.7s;}
-  .btn-refresh.spinning .sp:nth-child(3){animation-delay:-0.6s;}
-  .btn-refresh.spinning .sp:nth-child(4){animation-delay:-0.5s;}
-  .btn-refresh.spinning .sp:nth-child(5){animation-delay:-0.4s;}
-  .btn-refresh.spinning .sp:nth-child(6){animation-delay:-0.3s;}
-  .btn-refresh.spinning .sp:nth-child(7){animation-delay:-0.2s;}
-  .btn-refresh.spinning .sp:nth-child(8){animation-delay:-0.1s;}
+  .btn-refresh .sp-wrap rect:nth-child(1){animation:ios-fade 3s linear infinite;animation-delay:0s;}
+  .btn-refresh .sp-wrap rect:nth-child(2){animation:ios-fade 3s linear infinite;animation-delay:-2.625s;}
+  .btn-refresh .sp-wrap rect:nth-child(3){animation:ios-fade 3s linear infinite;animation-delay:-2.25s;}
+  .btn-refresh .sp-wrap rect:nth-child(4){animation:ios-fade 3s linear infinite;animation-delay:-1.875s;}
+  .btn-refresh .sp-wrap rect:nth-child(5){animation:ios-fade 3s linear infinite;animation-delay:-1.5s;}
+  .btn-refresh .sp-wrap rect:nth-child(6){animation:ios-fade 3s linear infinite;animation-delay:-1.125s;}
+  .btn-refresh .sp-wrap rect:nth-child(7){animation:ios-fade 3s linear infinite;animation-delay:-0.75s;}
+  .btn-refresh .sp-wrap rect:nth-child(8){animation:ios-fade 3s linear infinite;animation-delay:-0.375s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(1){animation-duration:0.8s;animation-delay:0s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(2){animation-duration:0.8s;animation-delay:-0.7s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(3){animation-duration:0.8s;animation-delay:-0.6s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(4){animation-duration:0.8s;animation-delay:-0.5s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(5){animation-duration:0.8s;animation-delay:-0.4s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(6){animation-duration:0.8s;animation-delay:-0.3s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(7){animation-duration:0.8s;animation-delay:-0.2s;}
+  .btn-refresh.spinning .sp-wrap rect:nth-child(8){animation-duration:0.8s;animation-delay:-0.1s;}
   @keyframes ios-fade{
-    0%,100%{opacity:1;}
-    12.5%{opacity:0.85;}
-    25%{opacity:0.65;}
-    37.5%{opacity:0.45;}
-    50%{opacity:0.3;}
-    62.5%{opacity:0.2;}
-    75%{opacity:0.12;}
-    87.5%{opacity:0.08;}
+    0%{opacity:1;} 12.5%{opacity:0.85;} 25%{opacity:0.65;} 37.5%{opacity:0.45;}
+    50%{opacity:0.3;} 62.5%{opacity:0.2;} 75%{opacity:0.12;} 87.5%{opacity:0.07;} 100%{opacity:1;}
   }
   .btn-parts-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .btn-parts-toggle:hover{border-color:var(--accent2);color:var(--accent2);}
@@ -159,7 +159,7 @@
 
   /* Card actions */
   .card-actions{display:flex;flex-direction:column;gap:4px;padding-top:2px;}
-  .btn-icon{width:26px;height:26px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.13s;}
+  .btn-icon{width:28px;height:28px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.13s;}
   .btn-icon:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,127,255,0.08);}
   .btn-icon.btn-del:hover{border-color:var(--red);color:var(--red);background:rgba(255,77,109,0.08);}
   .section-divider{height:1px;background:var(--border);margin:18px 0;opacity:0.5;}
@@ -294,7 +294,7 @@
     .header-right .clock-block{display:none;}
     .btn-theme{width:28px;height:28px;font-size:13px;border-radius:6px;}
     .btn-refresh{width:28px;height:28px;border-radius:6px;}
-    .btn-refresh svg{width:13px;height:13px;}
+    .btn-refresh svg{width:14px;height:14px;}
     .btn-add{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
     .btn-ics{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
     .btn-parts-toggle{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
@@ -311,7 +311,7 @@
     .job-card{display:block;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;padding:10px 11px;position:relative;}
     .time-col{display:inline-block;font-size:22px;font-weight:700;color:var(--text-muted);margin-bottom:5px;vertical-align:middle;}
     .card-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;}
-    .btn-icon{width:26px;height:26px;font-size:12px;}
+    .btn-icon{width:28px;height:28px;font-size:14px;}
     .job-body{width:100%;overflow:hidden;overflow-wrap:break-word;word-break:break-word;}
     .job-top{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;padding-right:60px;}
     .job-title{font-size:14px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;white-space:normal;}
@@ -328,6 +328,10 @@
     .form-row{grid-template-columns:1fr;}
     .summary-list{max-height:35vh;}
   }
+
+
+
+
 
 
 
@@ -438,14 +442,16 @@
     <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">발주부품</button>
     <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="수동 새로고침">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="1.0"  transform="rotate(0   12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.85" transform="rotate(45  12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.65" transform="rotate(90  12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.45" transform="rotate(135 12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.3"  transform="rotate(180 12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.2"  transform="rotate(225 12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.12" transform="rotate(270 12 12)"/>
-        <rect class="sp" x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.07" transform="rotate(315 12 12)"/>
+        <g class="sp-wrap">
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="1.0"  transform="rotate(0   12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.85" transform="rotate(45  12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.65" transform="rotate(90  12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.45" transform="rotate(135 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.3"  transform="rotate(180 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.2"  transform="rotate(225 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.12" transform="rotate(270 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.07" transform="rotate(315 12 12)"/>
+        </g>
       </svg>
     </button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
@@ -528,6 +534,10 @@
     </div>
   </div>
 </div>
+
+
+
+
 
 
 
@@ -1188,7 +1198,7 @@ function renderSchedule() {
             <div class="part-row${chk}" id="p-${ji}-${pi}">
               <div class="cb-box" onclick="togglePart(${ji},${pi})">${CHECK_SVG}</div>
               <span class="part-label" onclick="togglePart(${ji},${pi})">${part}</span>
-              <button class="part-memo-btn${hasMemo?' has-memo':''}" id="pmb-${ji}-${pi}" onclick="togglePartMemo(${ji},${pi})" title="메모">메모</button>
+              <button class="part-memo-btn${hasMemo?' has-memo':''}" id="pmb-${ji}-${pi}" onclick="togglePartMemo(${ji},${pi})" title="메모">📋</button>
             </div>
             <div class="part-memo-wrap${hasMemo?' always':''}" id="pmw-${ji}-${pi}">
               ${hasMemo
@@ -1212,8 +1222,8 @@ function renderSchedule() {
           ${noteHtml}${phoneHtml}${partsHtml}
         </div>
         <div class="card-actions">
-          <button class="btn-icon" onclick="openModal(${ji})">수정</button>
-          <button class="btn-icon btn-del" onclick="askDelete(${ji})">삭제</button>
+          <button class="btn-icon" onclick="openModal(${ji})" title="수정">✏️</button>
+          <button class="btn-icon btn-del" onclick="askDelete(${ji})" title="삭제">🗑️</button>
         </div>`;
       section.appendChild(card);
     });
@@ -1715,7 +1725,10 @@ async function manualRefresh() {
   } catch(e) {}
   finally {
     setTimeout(() => {
-      if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+      if (btn) {
+        btn.classList.remove('spinning');
+        btn.disabled = false;
+      }
     }, 800);
   }
 }
@@ -1924,6 +1937,10 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
+
+
+
 
 
 
