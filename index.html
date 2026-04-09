@@ -44,9 +44,10 @@
   .btn-add:hover{opacity:0.85;}
   .btn-theme{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
   .btn-theme:hover{border-color:var(--accent);}
-  .btn-refresh{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;padding:0;}
+  .btn-refresh{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;padding:0;color:var(--text);}
   .btn-refresh:hover{border-color:var(--green);}
   .btn-refresh svg{width:18px;height:18px;}
+  .btn-refresh .sp-wrap rect{fill:var(--text);}
   .btn-refresh .sp-wrap rect:nth-child(1){animation:ios-fade 3s linear infinite;animation-delay:0s;}
   .btn-refresh .sp-wrap rect:nth-child(2){animation:ios-fade 3s linear infinite;animation-delay:-2.625s;}
   .btn-refresh .sp-wrap rect:nth-child(3){animation:ios-fade 3s linear infinite;animation-delay:-2.25s;}
@@ -55,14 +56,6 @@
   .btn-refresh .sp-wrap rect:nth-child(6){animation:ios-fade 3s linear infinite;animation-delay:-1.125s;}
   .btn-refresh .sp-wrap rect:nth-child(7){animation:ios-fade 3s linear infinite;animation-delay:-0.75s;}
   .btn-refresh .sp-wrap rect:nth-child(8){animation:ios-fade 3s linear infinite;animation-delay:-0.375s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(1){animation-duration:0.8s;animation-delay:0s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(2){animation-duration:0.8s;animation-delay:-0.7s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(3){animation-duration:0.8s;animation-delay:-0.6s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(4){animation-duration:0.8s;animation-delay:-0.5s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(5){animation-duration:0.8s;animation-delay:-0.4s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(6){animation-duration:0.8s;animation-delay:-0.3s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(7){animation-duration:0.8s;animation-delay:-0.2s;}
-  .btn-refresh.spinning .sp-wrap rect:nth-child(8){animation-duration:0.8s;animation-delay:-0.1s;}
   @keyframes ios-fade{
     0%{opacity:1;} 12.5%{opacity:0.85;} 25%{opacity:0.65;} 37.5%{opacity:0.45;}
     50%{opacity:0.3;} 62.5%{opacity:0.2;} 75%{opacity:0.12;} 87.5%{opacity:0.07;} 100%{opacity:1;}
@@ -405,6 +398,9 @@
 
 
 
+
+
+
 </style>
 </head>
 <body>
@@ -443,14 +439,14 @@
     <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="수동 새로고침">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g class="sp-wrap">
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="1.0"  transform="rotate(0   12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.85" transform="rotate(45  12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.65" transform="rotate(90  12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.45" transform="rotate(135 12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.3"  transform="rotate(180 12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.2"  transform="rotate(225 12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.12" transform="rotate(270 12 12)"/>
-          <rect x="11" y="2" width="2" height="5" rx="1" fill="currentColor" opacity="0.07" transform="rotate(315 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="1.0"  transform="rotate(0   12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.85" transform="rotate(45  12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.65" transform="rotate(90  12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.45" transform="rotate(135 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.3"  transform="rotate(180 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.2"  transform="rotate(225 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.12" transform="rotate(270 12 12)"/>
+          <rect x="11" y="2" width="2" height="5" rx="1" opacity="0.07" transform="rotate(315 12 12)"/>
         </g>
       </svg>
     </button>
@@ -534,6 +530,9 @@
     </div>
   </div>
 </div>
+
+
+
 
 
 
@@ -1684,7 +1683,16 @@ function confirmDelete() { if(deletingIndex===null) return; JOBS.splice(deleting
 // ── Theme ─────────────────────────────────────────────────
 async function manualRefresh() {
   const btn = document.getElementById('refreshBtn');
-  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+  if (btn) {
+    // 0.8s 기준 딜레이로 교체 (위상 유지)
+    const fastDelays = [0, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1];
+    const rects = btn.querySelectorAll('.sp-wrap rect');
+    rects.forEach((r, i) => {
+      r.style.animationDuration = '0.8s';
+      r.style.animationDelay = fastDelays[i] + 's';
+    });
+    btn.disabled = true;
+  }
   try {
     const [sbJobs, sbChecked, sbMemos] = await Promise.all([
       sbGet('jungbi_jobs'),
@@ -1726,7 +1734,13 @@ async function manualRefresh() {
   finally {
     setTimeout(() => {
       if (btn) {
-        btn.classList.remove('spinning');
+        // 아이들 속도(3s) + 딜레이로 복귀
+        const idleDelays = [0, -2.625, -2.25, -1.875, -1.5, -1.125, -0.75, -0.375];
+        const rects = btn.querySelectorAll('.sp-wrap rect');
+        rects.forEach((r, i) => {
+          r.style.animationDuration = '3s';
+          r.style.animationDelay = idleDelays[i] + 's';
+        });
         btn.disabled = false;
       }
     }, 800);
@@ -1937,6 +1951,9 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
+
+
 
 
 
