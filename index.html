@@ -440,6 +440,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -568,6 +569,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1401,15 +1403,25 @@ async function mergeAndUpdate(newJobs) {
   const oldMap = {};
   baseJobs.forEach(j => { oldMap[jobKey(j)] = j; });
 
+  // region(차대번호)은 번호판만 같아도 보존 — jobKey 불일치로 날아가는 버그 방지
+  const regionByPlate = {};
+  baseJobs.forEach(j => {
+    if (j.plate && j.region) regionByPlate[j.plate] = j.region;
+  });
+
   const merged = newJobs.map(nj => {
     const old = findSbJob(nj, oldMap, baseJobs);
-    if (!old) return nj;
+    // region: 1순위 매칭된 job의 region, 2순위 같은 번호판의 region
+    const savedRegion = (old && old.region) ? old.region
+                      : (nj.plate && regionByPlate[nj.plate]) ? regionByPlate[nj.plate]
+                      : (nj.region || '');
+    if (!old) return { ...nj, region: savedRegion };
     return {
       ...nj,
       done:      old.done,
       cancelled: old.cancelled,
       note:      old.note !== undefined && old.note !== '' ? old.note : nj.note,
-      region:    old.region !== undefined && old.region !== '' ? old.region : nj.region,
+      region:    savedRegion,
       parts:     old.parts !== undefined ? filterBlacklistFromParts(old.parts) : nj.parts,
     };
   });
@@ -1940,6 +1952,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
