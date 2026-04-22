@@ -438,6 +438,7 @@
 
 
 
+
 </style>
 </head>
 <body>
@@ -566,6 +567,7 @@
     </div>
   </div>
 </div>
+
 
 
 
@@ -1496,7 +1498,7 @@ function parseSummary(summary) {
   const plate = plateM ? plateM[0].trim() : '';
   if (plate) s = s.replace(plate, '');
   // 괄호 제거
-  s = s.replace(/[(（][^)）\n]{1,15}[)）]/g, '').replace(/^[\s.,\-]+/, '').replace(/[\s.,\-]+$/, '').replace(/\s{2,}/g, ' ').trim();
+  s = s.replace(/^[\s.,\-]+/, '').replace(/[\s.,\-]+$/, '').replace(/\s{2,}/g, ' ').trim();
   return { model, plate, title: s };
 }
 
@@ -1925,6 +1927,7 @@ showLastUpdated();
     renderSchedule();
   }
 })();
+
 
 
 
