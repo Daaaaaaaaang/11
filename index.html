@@ -767,17 +767,8 @@ const DEFAULT_JOBS = [
   {date:"5/26",endDate:"",time:"10:00",model:"F54",plate:"167라4612",region:"",title:"프론트 활대링크 프론트브레이크호스 좌,우 프론트 컨트롤암 부싱만 좌.우",parts:["링크", "부싱"],phone:"",note:"",done:false,cancelled:false},
 ];
 
-(function() {
-  var h = 0;
-  for (var _i = 0; _i < DEFAULT_JOBS.length; _i++) {
-    var j = DEFAULT_JOBS[_i];
-    var s = (j.date||'') + (j.time||'') + (j.plate||'') + (j.model||'');
-    for (var _c = 0; _c < s.length; _c++) { h = ((h * 31) + s.charCodeAt(_c)) & 0x7fffffff; }
-  }
-  var hash = h.toString(36);
-  window.LS_JOBS    = 'jungbi_jobs_'    + hash;
-  window.LS_CHECKED = 'jungbi_checked_' + hash;
-})();
+window.LS_JOBS    = 'junghbi_jobs';
+window.LS_CHECKED = 'junghbi_checked';
 var LS_JOBS    = window.LS_JOBS;
 var LS_CHECKED = window.LS_CHECKED;
 
@@ -1621,10 +1612,7 @@ showLastUpdated();
 
 // ── Supabase에서 데이터 불러오기 후 렌더 ────────────────────────────────
 (async function initFromSupabase() {
-  // 1. 일단 localStorage로 빠르게 첫 렌더
-  renderSchedule();
-
-  // 2. Supabase에서 최신 데이터 로드
+  // Supabase 로드 완료 전에는 렌더하지 않음 (타이밍 버그 방지)
   try {
     const [sbJobs, sbChecked, sbMemos] = await Promise.all([
       sbGet('jungbi_jobs'),
@@ -1632,62 +1620,48 @@ showLastUpdated();
       sbGet('jungbi_pmemo'),
     ]);
 
-    let changed = false;
-
     if (sbJobs) {
-      // DEFAULT_JOBS 기준으로 고유키(날짜+시간+번호판+차종) 생성
       function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
-
-      // Supabase 저장 데이터를 키-맵으로 변환
       const sbMap = {};
       sbJobs.forEach(j => { sbMap[jobKey(j)] = j; });
-
-      // DEFAULT_JOBS(새 ICS) 기준으로 병합:
-      // - 작업내용/날짜/번호판 등 일정 정보 → 항상 새 ICS 기준
-      // - 완료/취소 상태, 브라우저에서 수정한 메모 → Supabase에서 가져옴
+      // 새 ICS(DEFAULT_JOBS) 우선, 사용자 편집값(done/cancelled/note/region/parts)은 Supabase 우선
       const merged = DEFAULT_JOBS.map(dj => {
         const sb = sbMap[jobKey(dj)];
-        if (!sb) return dj; // 신규 일정은 그대로
+        if (!sb) return dj;
         return {
-          ...dj,           // 새 ICS 내용 기준 (title, phone 등)
-          done:      sb.done,      // 완료 상태 유지
-          cancelled: sb.cancelled, // 취소 상태 유지
-          note:      sb.note !== undefined ? sb.note : dj.note, // 메모 유지
-          region:    sb.region !== undefined && sb.region !== '' ? sb.region : dj.region, // 차대번호 유지
-          // Supabase에 parts가 저장돼 있으면 무조건 우선 사용 (삭제/추가 모두 반영)
+          ...dj,
+          done:      sb.done,
+          cancelled: sb.cancelled,
+          note:      sb.note !== undefined && sb.note !== '' ? sb.note : dj.note,
+          region:    sb.region !== undefined && sb.region !== '' ? sb.region : dj.region,
           parts:     sb.parts !== undefined ? sb.parts : dj.parts,
         };
       });
-
       JOBS = merged;
       try { localStorage.setItem(LS_JOBS, JSON.stringify(JOBS)); } catch(e) {}
-      changed = true;
     }
     if (sbChecked && JSON.stringify(sbChecked) !== JSON.stringify(checkedState)) {
       checkedState = sbChecked;
       try { localStorage.setItem(LS_CHECKED, JSON.stringify(checkedState)); } catch(e) {}
-      changed = true;
     }
     if (sbMemos && JSON.stringify(sbMemos) !== JSON.stringify(partMemos)) {
       partMemos = sbMemos;
       try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
-      changed = true;
     }
 
     SB_READY = true;
-    if (changed) renderSchedule();
     console.log('✅ Supabase 데이터 로드 완료');
   } catch(e) {
-    SB_READY = true; // 실패해도 저장은 시도
+    SB_READY = true;
     console.warn('Supabase 로드 실패, localStorage 사용:', e);
   }
-})();
-(function() {
+
+  // Supabase 로드 완료 후 오늘 날짜 필터 적용 및 첫 렌더 (단 1회)
   const todayStr = getTodayStr();
   if (JOBS.some(j => j.date === todayStr)) {
     currentFilter = todayStr;
-    renderSchedule();
   }
+  renderSchedule();
 })();
 
 
