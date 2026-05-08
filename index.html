@@ -184,8 +184,8 @@
   .long-card-days.caution{color:var(--yellow);}
   .long-card-days.ok{color:var(--green);}
   .long-card-title{font-size:13px;color:var(--text-muted);overflow-wrap:break-word;word-break:break-word;white-space:normal;line-height:1.4;margin-top:2px;}
-  .long-card-dates{font-family:'Courier New',Courier,monospace;font-size:12px;color:var(--text-muted);margin-top:3px;}
-  .long-card-dday{font-family:'Courier New',Courier,monospace;font-size:12px;font-weight:700;margin-top:2px;}
+  .long-card-dates{font-family:'Courier New',Courier,monospace;font-size:13px;color:var(--text-muted);margin-top:3px;}
+  .long-card-dday{font-family:'Courier New',Courier,monospace;font-size:13px;font-weight:700;margin-top:2px;}
   .long-card-dday.warn{color:var(--red);}
   .long-card-dday.caution{color:var(--yellow);}
   .long-card-dday.ok{color:var(--green);}
@@ -971,7 +971,7 @@ function renderSchedule() {
       if (partsOnly && !(job.parts && job.parts.length > 0)) return;
       const card = document.createElement('div');
       card.className = 'job-card'+(job.done?' is-done':'')+(job.cancelled?' is-cancelled':'');
-      const endStr = job.endDate ? `<br><span style="font-size:10px;opacity:.5">→${job.endDate}</span>` : '';
+      const endStr = job.endDate ? `<br><span style="font-size:13px;opacity:.5">→${job.endDate}</span>` : '';
       const badge = job.cancelled ? '<span class="status-badge badge-cancel">취소</span>' : job.done ? '<span class="status-badge badge-done">완료</span>' : '';
       const noteHtml = job.note ? `<div class="job-note">${highlight(job.note, searchQuery)}</div>` : '';
       const phoneHtml = job.phone ? `<div class="phone">${highlight(job.phone, searchQuery)}</div>` : '';
