@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>정비 일정 관리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<script src="https://unpkg.com/@primer/octicons@latest/build/build.js"></script>
 <style>
   :root {
     --bg:#0f1117; --surface:#1a1d27; --surface2:#232636; --border:#2e3248;
@@ -16,7 +18,7 @@
     --green:#1cab5e; --yellow:#d4920a; --red:#d63050;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:'Apple SD Gothic Neo','Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic','맑은 고딕',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;max-width:100vw;}
+  body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;max-width:100vw;}
   #pw-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;}
   .pw-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:36px 32px;width:100%;max-width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);}
   .pw-box h2{font-size:18px;font-weight:700;margin-bottom:6px;}
@@ -40,9 +42,10 @@
   .clock-block{display:flex;flex-direction:column;align-items:flex-end;gap:1px;border-right:1px solid var(--border);padding-right:14px;margin-right:2px;}
   .clock-time{font-family:'Courier New',Courier,monospace;font-size:19px;font-weight:500;color:var(--text);letter-spacing:1px;line-height:1.1;}
   .clock-date{font-family:'Courier New',Courier,monospace;font-size:12px;color:var(--text-muted);letter-spacing:0.3px;}
-  .btn-add{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;padding:6px 13px;border-radius:6px;border:none;background:var(--accent);color:white;cursor:pointer;transition:opacity 0.15s;font-family:inherit;}
+  .btn-add{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;padding:0 13px;height:36px;box-sizing:border-box;border-radius:6px;border:none;background:var(--accent);color:white;cursor:pointer;transition:opacity 0.15s;font-family:inherit;}
   .btn-add:hover{opacity:0.85;}
-  .btn-theme{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+  .btn-theme{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:var(--text);}
+  .btn-theme svg{width:18px;height:18px;}
   .btn-theme:hover{border-color:var(--accent);}
   .btn-refresh{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;padding:0;}
   .btn-refresh:hover{border-color:var(--green);}
@@ -50,14 +53,14 @@
   .btn-refresh .spinner-ring{transform-origin:50% 50%;animation:none;}
   .btn-refresh.spinning .spinner-ring{animation:ios-spin 0.9s linear infinite;}
   @keyframes ios-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-  .btn-parts-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
+  .btn-parts-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:0 11px;height:36px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .btn-parts-toggle:hover{border-color:var(--accent2);color:var(--accent2);}
   .btn-parts-toggle.active{background:var(--accent2);border-color:var(--accent2);color:white;}
-  .btn-ics{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
+  .btn-ics{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:0 11px;height:36px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .btn-ics:hover{border-color:var(--green);color:var(--green);}
   .last-updated{font-size:11px;color:var(--text-muted);white-space:nowrap;}
   .last-updated b{color:var(--green);}
-  .btn-ics{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
+  .btn-ics{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:0 11px;height:36px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .btn-ics:hover{border-color:var(--green);color:var(--green);}
   .last-updated{font-size:11px;color:var(--text-muted);white-space:nowrap;}
   .last-updated b{color:var(--green);}
@@ -95,7 +98,7 @@
   .day-count{font-size:13px;color:var(--text-muted);}
 
   /* Job card */
-  .job-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:7px;display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:start;transition:border-color 0.2s,box-shadow 0.2s;position:relative;width:100%;box-sizing:border-box;overflow:hidden;}
+  .job-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:7px;display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:start;transition:border-color 0.2s,box-shadow 0.2s;position:relative;width:100%;box-sizing:border-box;overflow:hidden;}
   .job-card:hover{border-color:rgba(79,127,255,0.4);box-shadow:0 2px 10px rgba(79,127,255,0.12);}
   .job-card.is-done{opacity:0.45;}
   .job-card.is-cancelled{opacity:0.4;background:rgba(58,31,31,0.5);border-color:#4a2020;}
@@ -104,16 +107,19 @@
   .status-badge{position:absolute;top:8px;right:44px;font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:0.4px;}
   .badge-cancel{color:var(--red);background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);}
   .badge-done{color:var(--green);background:rgba(61,220,132,0.1);border:1px solid rgba(61,220,132,0.3);}
-  .time-col{font-family:'Courier New',Courier,monospace;font-size:15px;color:var(--text-muted);padding-top:2px;text-align:right;line-height:1.7;min-width:0;word-break:break-word;}
+  .time-col{font-family:'Courier New',Courier,monospace;font-size:16px;color:var(--text-muted);padding-top:2px;text-align:center;line-height:1.4;min-width:72px;white-space:pre;word-break:break-word;}
+  .time-am{color:#4a90e2;font-weight:700;font-size:0.85em;}
+  .time-pm{color:#e07b39;font-weight:700;font-size:0.85em;}
+  .time-ampm{color:var(--text-muted);font-size:0.85em;}
   .job-body{min-width:0;overflow:hidden;overflow-wrap:break-word;word-break:break-word;}
   .job-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;max-width:100%;}
-  .job-title{font-size:14px;color:var(--text);line-height:1.5;margin-bottom:2px;overflow-wrap:break-word;word-break:break-word;}
+  .job-title{font-size:15px;color:var(--text);line-height:1.5;margin-bottom:2px;overflow-wrap:break-word;word-break:break-word;}
   .job-note{font-size:12px;color:var(--text-muted);line-height:1.5;background:var(--surface2);border-left:2px solid var(--border);padding:4px 8px;border-radius:0 4px 4px 0;margin-top:4px;overflow-wrap:break-word;word-break:break-word;}
   .phone{font-family:'Courier New',Courier,monospace;font-size:12px;color:var(--green);margin-top:3px;opacity:0.85;overflow-wrap:break-word;word-break:break-all;}
 
   /* Car model badge - color by series */
   .car-model{font-family:'Courier New',Courier,monospace;font-size:13px;font-weight:500;padding:1px 7px;border-radius:3px;border-width:1px;border-style:solid;}
-  .plate{font-family:'Courier New',Courier,monospace;font-size:15px;font-weight:700;color:var(--yellow);}
+  .plate{font-family:'Courier New',Courier,monospace;font-size:16px;font-weight:700;color:var(--text);}
   .vin{font-family:'Courier New',Courier,monospace;font-size:13px;font-weight:700;color:var(--text);background:var(--surface2);border:1px solid var(--border);padding:1px 7px;border-radius:3px;}
   .vin-highlight{color:var(--red);font-weight:700;font-family:'Courier New',Courier,monospace;}
 
@@ -129,9 +135,10 @@
   .cb-box svg{display:none;width:9px;height:9px;}
   .part-row.checked .cb-box svg{display:block;}
   .part-label{font-size:13px;color:var(--accent2);line-height:1.4;flex:1;overflow-wrap:break-word;}
-  .part-memo-btn{background:none;border:none;cursor:pointer;font-size:13px;opacity:0.35;padding:0 2px;line-height:1;transition:opacity 0.13s;flex-shrink:0;}
+  .part-memo-btn{background:none;border:none;cursor:pointer;font-size:13px;opacity:0.35;padding:0 2px;line-height:1;transition:opacity 0.13s;flex-shrink:0;color:var(--text-muted);}
   .part-memo-btn:hover{opacity:0.9;}
-  .part-memo-btn.has-memo{opacity:0.85;color:var(--yellow);}
+  .part-memo-btn.has-memo{opacity:0.85;color:var(--text);}
+  .part-memo-btn svg{width:15px;height:15px;}
   .part-memo-wrap{padding:2px 7px 5px 30px;display:none;}
   .part-memo-wrap.open{display:block;}
   .part-memo-wrap.always{display:block;}
@@ -144,6 +151,7 @@
   /* Card actions */
   .card-actions{display:flex;flex-direction:column;gap:4px;padding-top:2px;}
   .btn-icon{width:26px;height:26px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.13s;}
+  .btn-icon svg{width:16px;height:16px;}
   .btn-icon:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,127,255,0.08);}
   .btn-icon.btn-del:hover{border-color:var(--red);color:var(--red);background:rgba(255,77,109,0.08);}
   .section-divider{height:1px;background:var(--border);margin:18px 0;opacity:0.5;}
@@ -157,7 +165,7 @@
   .undone-row:last-child{border-bottom:none;}
   .undone-info{min-width:0;flex:1;}
   .undone-model{font-family:'Courier New',Courier,monospace;font-size:12px;font-weight:600;}
-  .undone-plate{font-family:'Courier New',Courier,monospace;font-size:11px;color:var(--yellow);}
+  .undone-plate{font-family:'Courier New',Courier,monospace;font-size:11px;color:var(--text);}
   .undone-title{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;}
   .undone-date{font-family:'Courier New',Courier,monospace;font-size:11px;color:var(--text-muted);white-space:nowrap;}
   .long-list{padding:8px 10px 10px;max-height:65vh;overflow-y:auto;display:flex;flex-direction:column;gap:7px;}
@@ -171,7 +179,7 @@
   .long-card.open .long-card-chevron{transform:rotate(180deg);}
   .long-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
   .long-card-model{font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:700;padding:1px 6px;border-radius:3px;border-width:1px;border-style:solid;}
-  .long-card-plate{font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:700;color:var(--yellow);}
+  .long-card-plate{font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:700;color:var(--text);}
   .long-card-days{font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:700;white-space:nowrap;}
   .long-card-days.warn{color:var(--red);}
   .long-card-days.caution{color:var(--yellow);}
@@ -293,15 +301,15 @@
     #scheduleContainer{width:100%;max-width:100%;overflow:hidden;}
     .day-section{width:100%;max-width:100%;overflow:hidden;}
     .job-card{display:block;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;padding:10px 11px;position:relative;}
-    .time-col{display:inline-block;font-size:22px;font-weight:700;color:var(--text-muted);margin-bottom:5px;vertical-align:middle;}
+    .time-col{display:inline-block;font-size:23px;font-weight:700;color:var(--text-muted);margin-bottom:5px;vertical-align:middle;text-align:center;}
     .card-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;}
     .btn-icon{width:26px;height:26px;font-size:12px;}
     .job-body{width:100%;overflow:hidden;overflow-wrap:break-word;word-break:break-word;}
     .job-top{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;padding-right:60px;}
-    .job-title{font-size:14px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;white-space:normal;}
+    .job-title{font-size:15px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;white-space:normal;}
     .job-note{font-size:11px;overflow-wrap:break-word;word-break:break-word;white-space:normal;}
     .car-model{font-size:13px;}
-    .plate{font-size:14px;font-weight:700;}
+    .plate{font-size:15px;font-weight:700;}
     .vin{font-size:11px;font-weight:700;}
     .phone{font-size:13px;overflow-wrap:break-word;word-break:break-all;}
     .part-label{font-size:13px;overflow-wrap:break-word;}
@@ -374,7 +382,7 @@
 <!-- 비밀번호 화면 -->
 <div id="pw-screen">
   <div class="pw-box">
-    <h2>🔧 정비 일정</h2>
+    <h2>정비 일정</h2>
     <p>접근하려면 비밀번호를 입력하세요</p>
     <input type="password" class="pw-input" id="pwInput" placeholder="••••" maxlength="20"
       onkeydown="if(event.key==='Enter') checkPw()">
@@ -385,9 +393,9 @@
 
 <header>
   <div class="header-row1">
-    <h1>🔧 정비 일정 <span id="headerMonth"></span></h1>
+    <h1>정비 일정 <span id="headerMonth"></span></h1>
     <div class="search-wrap">
-      <span class="search-icon">🔍</span>
+      <span class="search-icon"></span>
       <input type="text" id="searchInput" class="search-input" placeholder="번호판, 차종, 작업내용 검색..." oninput="onSearch(this.value)">
       <button class="search-clear" id="searchClear" onclick="clearSearch()" title="검색 초기화">✕</button>
     </div>
@@ -399,9 +407,9 @@
   <div class="header-row2">
     <div class="stats"><span>전체 <b id="totalCount">-</b>건</span></div>
     <span class="last-updated" id="lastUpdated"></span>
-    <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일로 일정 갱신">📅 ICS 갱신</button>
+    <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일로 일정 갱신">ICS 갱신</button>
     <input type="file" id="icsFileInput" accept=".ics" style="display:none" onchange="loadICSFile(this)">
-    <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">🔩 발주부품</button>
+    <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">발주부품</button>
     <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="수동 새로고침">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g class="spinner-ring">
@@ -416,12 +424,12 @@
         </g>
       </svg>
     </button>
-    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"/></svg></button>
     <button class="btn-add" onclick="openModal()">＋ 일정 추가</button>
   </div>
   <!-- 모바일 전용 3번째 줄 검색창 -->
   <div class="header-row3">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"></span>
     <input type="text" id="searchInputMobile" class="search-input" placeholder="번호판, 차종, 작업내용 검색..." oninput="onSearch(this.value); document.getElementById('searchInput').value=this.value;">
     <button class="search-clear" id="searchClearMobile" onclick="clearSearch(); this.classList.remove('visible');" title="검색 초기화">✕</button>
   </div>
@@ -437,7 +445,7 @@
   <div class="sidebar">
     <!-- 장기 입고 -->
     <div class="sidebar-card">
-      <div class="sb-section-title">🚗 장기 입고 현황 <span id="longCount">0건</span></div>
+      <div class="sb-section-title">장기 입고 현황 <span id="longCount">0건</span></div>
       <div class="long-list" id="longList"><div style="padding:12px 15px;font-size:11px;color:var(--text-muted)">장기 입고 없음</div></div>
     </div>
 
@@ -476,8 +484,8 @@
     </div>
     <div class="form-group" style="margin-bottom:6px;"><label>상태</label></div>
     <div class="status-toggles">
-      <button class="toggle-btn" id="toggle-done" onclick="toggleStatus('done')">✅ 완료</button>
-      <button class="toggle-btn" id="toggle-cancel" onclick="toggleStatus('cancel')">❌ 취소</button>
+      <button class="toggle-btn" id="toggle-done" onclick="toggleStatus('done')">완료</button>
+      <button class="toggle-btn" id="toggle-cancel" onclick="toggleStatus('cancel')">취소</button>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel-modal" onclick="closeModal()">닫기</button>
@@ -553,7 +561,12 @@
 
 
 <script>
-const CHECK_SVG = `<svg viewBox="0 0 10 10" fill="none"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const CHECK_SVG  = `<svg viewBox="0 0 10 10" fill="none"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const PENCIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm1.414 1.06a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Zm-1.86 3.233L9.128 4.28 3.21 10.197a.25.25 0 0 0-.064.108l-.618 2.163 2.162-.617a.25.25 0 0 0 .108-.064Z"/></svg>`;
+const TRASH_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"/></svg>`;
+const NOTE_SVG   = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M0 3.75C0 2.784.784 2 1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25Zm1.5 2a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75Z"/></svg>`;
+const MOON_SVG   = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"/></svg>`;
+const SUN_SVG    = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm5.657-.343a.75.75 0 0 1-1.06 1.06l-1.061-1.06a.75.75 0 0 1 1.06-1.061Zm-9.193.707a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-1.06-1.06a.75.75 0 0 1 1.06-1.061Z"/></svg>`;
 const DAY_KO = ['일','월','화','수','목','금','토'];
 
 // ── 차종 표시명 (d/s 등 suffix 제거) ───────────────────────
@@ -573,52 +586,34 @@ function getModelColor(model) {
 
 // ── localStorage ────────────────────────────────────────────
 const DEFAULT_JOBS = [
-  {date:"5/5",endDate:"5/7",time:"20:00",model:"F56",plate:"54어0468",region:"",title:"저녁에주차하고감 Lh 등속수리",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/6",endDate:"5/10",time:"10:00",model:"R60",plate:"36두3553",region:"",title:"파워감소-최대출력 메세지간헐적.차량떨림심하고소음심했었음",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/6",endDate:"5/9",time:"14:00",model:"F55s",plate:"131소2711",region:"",title:"오전탁송진행,오일필터하우징어셈블리 교환하체소음은 점검후 통화하고 진행,출고도탁송출고예정",parts:["오일필터하우징"],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"10:00",model:"F56",plate:"38다4764",region:"",title:"RH.타이로드,RH.컨트롤암,A/C필터",parts:[],phone:"",note:"60-25-4",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"10:00",model:"F55sd",plate:"39구4404",region:"",title:"밋션오일교환, 흡기매니폴드크리닝 25만. - 일단취소",parts:[],phone:"",note:"",done:true,cancelled:true},
-  {date:"5/7",endDate:"",time:"10:00",model:"F54",plate:"257모1493",region:"",title:"DCT오일,배터리점검후교환,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"10:00",model:"F55",plate:"02모5649",region:"",title:"패드,브레이크액점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"11:00",model:"F54",plate:"258나3526",region:"",title:"DCT미션오일,차량점검.스케줄관계로취소",parts:[],phone:"",note:"",done:true,cancelled:true},
-  {date:"5/7",endDate:"",time:"11:00",model:"F60",plate:"216부9399",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"11:00",model:"F55",plate:"20부0374",region:"",title:"차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"13:00",model:"R52s",plate:"51보0726",region:"",title:"수동.파워리턴호스지참,엔진오일-필터류지참,타이밍커버a/s진행",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"13:00",model:"F56",plate:"20어0379",region:"",title:"().브레이크패드-디스크,브레이크액점검후교환.드라이빙램프점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/7",endDate:"5/9",time:"13:00",model:"R56",plate:"66두5130",region:"",title:"견인입고 비접촉사고로 운전석 앞바퀴 연석충격후 각종경고등들어옴,점검후 상담전화",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"14:00",model:"F60",plate:"183고3164",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"14:00",model:"F56",plate:"28마4654",region:"",title:"구매점검후소모품교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"15:00",model:"R56",plate:"47라3504",region:"",title:"엔진오일,우측헤드라이트전구조립상태불량",parts:[],phone:"",note:"-24.11 전구 교환 이력 있음",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"16:00",model:"F55",plate:"09소0470",region:"",title:"A/C컴프레서,냉각수파이프긴거,운)하인터쿨러호스O링",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"16:00",model:"F55",plate:"163라3073",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"16:00",model:"F54",plate:"157거9034",region:"",title:"DCT미션오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"17:00",model:"F54",plate:"03너4083",region:"",title:"엔진오일교환 취소",parts:[],phone:"",note:"",done:true,cancelled:true},
-  {date:"5/7",endDate:"",time:"17:00",model:"F55",plate:"18저3196",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/7",endDate:"",time:"17:00",model:"F54",plate:"10루0271",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/7",endDate:"5/9",time:"20:00",model:"F56",plate:"24라6252",region:"",title:"저녁에주차하고감, 에어컨컴프레셔,,댐퍼풀리교환후 소리개선안됨",parts:["댐퍼풀리"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"10:00",model:"R56d",plate:"17구6481",region:"",title:"헤드커버어셈블리, 환기파이프, 95만,세척많으면 세척비용추가",parts:["환기파이프"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"10:00",model:"R57",plate:"56도1421",region:"",title:"[견인]출장배터리교환후 조명,에어컨,윈도우죽음",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"10:00",model:"F55",plate:"102도1425",region:"",title:"DCT미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/8",endDate:"",time:"11:00",model:"F54",plate:"01너3989",region:"",title:"엔진오일,차량점검.,예약변경했슴",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"11:00",model:"F56",plate:"153라7804",region:"",title:"엔진오일,주행중소음점검,엔진경고등,차량점검",parts:[],phone:"",note:"-마운트 26.02.24 교환 완료 마운트 교환후 주행중 소음 심해졌다함, 핸들돌릴대 더 심하다 함 -엔진경고등 들어왔다 나갔다 함",done:false,cancelled:false},
-  {date:"5/8",endDate:"",time:"13:00",model:"F56",plate:"33무9510",region:"",title:"엔진오일교환,서비스체크,시동걸때 리모컨인식잘안됨",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/8",endDate:"",time:"11:00",model:"F54",plate:"01너3989",region:"",title:"엔진오일,차량점검.,예약변경했슴",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/8",endDate:"",time:"13:00",model:"F56",plate:"33무9510",region:"",title:"엔진오일교환,서비스체크,시동걸때 리모컨인식잘안됨 스케줄관계로취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/8",endDate:"",time:"13:00",model:"F56",plate:"05도7551",region:"",title:"엔진오일,엔진경고등",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"13:00",model:"R56",plate:"18노8810",region:"",title:"엔진경고등[증상못느낌]",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"14:00",model:"R55",plate:"60다1715",region:"",title:"후드엠블럼 교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/8",endDate:"",time:"14:00",model:"F60",plate:"392도7146",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"14:00",model:"F55",plate:"284더7206",region:"",title:"DCT미션오일,미션마운트,센터마운트",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"15:00",model:"F56",plate:"307노8330",region:"",title:"DCT미션오일,에어컨바람방향이상함",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/8",endDate:"",time:"15:00",model:"F56d",plate:"59러2631",region:"",title:"구매점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/8",endDate:"",time:"15:00",model:"F56d",plate:"235서5892",region:"",title:"구매점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"16:00",model:"F60",plate:"358주7418",region:"",title:"엔진오일,댐퍼세트,마운트세트,배터리점검,차량점검. - 04.28,취소",parts:["마운트세트"],phone:"",note:"",done:true,cancelled:true},
   {date:"5/8",endDate:"",time:"16:00",model:"R60jcw",plate:"33어0233",region:"",title:"엔진오일교환, 에어컨필터,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"16:00",model:"F54",plate:"129노6982",region:"",title:"().엔진마운트단품교환",parts:["엔진마운트"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"17:00",model:"F55",plate:"107머4877",region:"",title:"엔진오일,에어컨필터,사이드미러커버",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"",time:"17:00",model:"F54",plate:"22고0975",region:"",title:"tpms센서교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/8",endDate:"5/14",time:"종일",model:"R53",plate:"07저3507",region:"",title:"엔진경고등",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/9",endDate:"",time:"10:00",model:"F56",plate:"07보2117",region:"",title:"배터리점검후교환.엔진오일교환, 취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/9",endDate:"",time:"10:00",model:"R56",plate:"15모2037",region:"",title:"엔진오일,번호판전구",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/9",endDate:"",time:"10:00",model:"F54",plate:"63더1694",region:"",title:"타이밍커버",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/9",endDate:"",time:"10:00",model:"F56",plate:"07보2117",region:"",title:"배터리점검후교환.엔진오일교환, 취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/9",endDate:"",time:"10:00",model:"F56",plate:"32도7977",region:"",title:"엔진오일교환, 브레이크패드 알람",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/9",endDate:"",time:"10:00",model:"R61",plate:"33주7997",region:"",title:"보험처리,전면유리교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/9",endDate:"",time:"10:00",model:"R61",plate:"33주7997",region:"",title:"보험처리,전면유리교환",parts:[],phone:"",note:"",done:true,cancelled:false},
   {date:"5/9",endDate:"",time:"10:00",model:"R55sd",plate:"24오7579",region:"",title:"자동차검사",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/9",endDate:"",time:"11:00",model:"F56",plate:"340우7742",region:"",title:"DCT미션오일,기본점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/9",endDate:"",time:"11:00",model:"F54",plate:"50노2363",region:"",title:"RH.인터쿨러호스교환",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -640,6 +635,7 @@ const DEFAULT_JOBS = [
   {date:"5/12",endDate:"",time:"11:00",model:"R56s",plate:"57서7611",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/12",endDate:"",time:"13:00",model:"F55",plate:"52소6712",region:"",title:"냉각수점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/12",endDate:"",time:"13:00",model:"F56",plate:"06가0238",region:"",title:"[견인입고].마운트세트,댐퍼세트,타이밍커버,환기파이프,딥스틱파이프O링",parts:["마운트세트", "타이밍커버", "환기파이프"],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/12",endDate:"",time:"14:00",model:"F54",plate:"53라9184",region:"",title:"트렁크안열림 점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/12",endDate:"",time:"14:00",model:"F56",plate:"340너6827",region:"",title:"().DCT미션오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/12",endDate:"",time:"15:00",model:"R59",plate:"11우5119",region:"",title:"조수석쪽휠하우스커버-혓바닥고정안됨",parts:[],phone:"",note:"-04.09 벨트세트 함 -다른 카센터에서 핀세트 상태 안좋다 했다 함",done:false,cancelled:false},
   {date:"5/12",endDate:"",time:"15:00",model:"F54",plate:"16가2416",region:"",title:"[같은날빠른시간원하심].엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -650,9 +646,9 @@ const DEFAULT_JOBS = [
   {date:"5/13",endDate:"",time:"10:00",model:"R58",plate:"355모6307",region:"",title:"누설진단펌프,에어컨점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/13",endDate:"",time:"10:00",model:"R50",plate:"04나8063",region:"",title:"헤드라이트 워셔노즐 좌,우",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/13",endDate:"",time:"10:00",model:"F54",plate:"69나0515",region:"",title:"().양쪽범퍼등점검후교환,엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/13",endDate:"",time:"11:00",model:"F56",plate:"30주0306",region:"",title:"하체소음점검. - 04.30_취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/13",endDate:"",time:"11:00",model:"R60",plate:"31소8109",region:"",title:"블로워점검,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/13",endDate:"",time:"11:00",model:"F54",plate:"20어0149",region:"",title:"().간헐적정속주행장치이상",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/13",endDate:"",time:"11:00",model:"F56",plate:"30주0306",region:"",title:"하체소음점검. - 04.30_취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/13",endDate:"",time:"13:00",model:"F56",plate:"343머3101",region:"",title:"차량점검후엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/13",endDate:"",time:"13:00",model:"R56",plate:"20가4128",region:"",title:"필터하우징-오일팬작업+엔진오일,편심축센서O링,진공펌프O링,Fr.크랭크리테이너,워터펌프+플리",parts:["워터펌프", "오일팬"],phone:"",note:"-70,15,35+O링",done:false,cancelled:false},
   {date:"5/13",endDate:"",time:"13:00",model:"F56",plate:"11조9326",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -670,6 +666,7 @@ const DEFAULT_JOBS = [
   {date:"5/14",endDate:"",time:"10:00",model:"F55",plate:"23마4819",region:"",title:"제동시뒤쪽에서바람소리남",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"11:00",model:"F54",plate:"131로7649",region:"",title:"엔진오일교환, 차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"11:00",model:"F55",plate:"157거7334",region:"",title:"엔진오일교환, 서비스체크",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/14",endDate:"",time:"11:00",model:"R60",plate:"22주0970",region:"",title:"().엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"13:00",model:"F56",plate:"346너7669",region:"",title:"엔진오일교환, 과열경고등,냉각수 누수점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"13:00",model:"F54",plate:"04모2307",region:"",title:"().RH.범퍼등점검후교환.시거잭점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"13:00",model:"R56",plate:"26부8826",region:"",title:"로워암부싱,Fr.활대링크,활대부싱,볼조인트교환,엔진오일교환.차량점검[내용확인]",parts:["볼조인트", "링크", "부싱"],phone:"",note:"-트렁크 손잡이 점검 (고무찢겼다함) -운전석 등받이 유격 -보증수리 확인 : 헤드커버 누유로 보증수리 받음 -범퍼하단 조수석 혓바닥 점검 -미션오일 점검",done:false,cancelled:false},
@@ -677,14 +674,15 @@ const DEFAULT_JOBS = [
   {date:"5/14",endDate:"",time:"14:00",model:"R60d",plate:"13소0158",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"15:00",model:"F56",plate:"53마0391",region:"",title:"소견내용점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"15:00",model:"F56jcw",plate:"365거5646",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/14",endDate:"",time:"16:00",model:"R56",plate:"47저7831",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"16:00",model:"F56",plate:"50도0135",region:"",title:"미션오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/14",endDate:"",time:"16:00",model:"R56",plate:"47저7831",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"17:00",model:"F60",plate:"59두6607",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/14",endDate:"",time:"17:00",model:"F60",plate:"353모5520",region:"",title:"엔진경고등,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/15",endDate:"",time:"10:00",model:"F56",plate:"171버5437",region:"",title:"구매점검후소모품교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/15",endDate:"",time:"10:00",model:"F55",plate:"11조9459",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/15",endDate:"",time:"10:00",model:"F56",plate:"337주5056",region:"",title:"브레이크패드-디스크점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/15",endDate:"",time:"11:00",model:"F54",plate:"06오0955",region:"",title:"().엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/15",endDate:"",time:"11:00",model:"R58",plate:"22더3220",region:"",title:"브레이크액 점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/15",endDate:"",time:"11:00",model:"F54",plate:"06오0955",region:"",title:"().엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/15",endDate:"",time:"13:00",model:"F54",plate:"158저8633",region:"",title:"오일필터하우징,인터쿨러O링",parts:["오일필터하우징"],phone:"",note:"-뒤패드 추가가능성 있음 -마운트세트 추가가능성 있음 -출고 16일 토요일 예정",done:false,cancelled:false},
   {date:"5/15",endDate:"5/16",time:"13:00",model:"R50",plate:"358어6324",region:"",title:"파워스티어링석션,탱크캡",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/15",endDate:"",time:"13:00",model:"F57",plate:"51조0278",region:"",title:"LH헤드라이트크롬링,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -716,6 +714,7 @@ const DEFAULT_JOBS = [
   {date:"5/18",endDate:"5/20",time:"11:00",model:"R56s",plate:"265너2724",region:"",title:"프론트로워암부싱, 링크,부싱 볼조인트좌,우, 트렁크스위치,도색포함, 윈드실드커버,좌,우 정션박스,사이드브레이크핸들 에어필터박스세트,조수석도어로드,고무",parts:["볼조인트", "윈드실드커버", "에어필터", "링크", "부싱"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"11:00",model:"F56",plate:"307주8252",region:"",title:"().패드점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"13:00",model:"F56",plate:"325머5640",region:"",title:"마운트세트,변속기장애수리,미션오일,엔진오일",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/18",endDate:"",time:"13:00",model:"F57",plate:"365노6717",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"14:00",model:"F60",plate:"53머7013",region:"",title:"운전석사이드미러유리,인터쿨러O링",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"14:00",model:"F57",plate:"128무6442",region:"",title:"운전석 테일램프점검, 스케줄관계로취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/18",endDate:"",time:"15:00",model:"F60",plate:"154어2415",region:"",title:"().엔진플러그씰,와이퍼,뒷도어씰링",parts:["플러그씰"],phone:"",note:"",done:false,cancelled:false},
@@ -725,10 +724,13 @@ const DEFAULT_JOBS = [
   {date:"5/19",endDate:"",time:"11:00",model:"",plate:"08저5032",region:"",title:"f56...브레이크액점검후교환,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/19",endDate:"",time:"13:00",model:"F56",plate:"52수2674",region:"",title:"엔진오일,에어컨필터,브레이크액점검후교환,차량점검",parts:[],phone:"",note:"-변속알림등 : △ 앞좌석히터",done:false,cancelled:false},
   {date:"5/19",endDate:"",time:"13:00",model:"F56",plate:"61무1533",region:"",title:"마운트세트3종, 엔진오일교환",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/19",endDate:"",time:"15:00",model:"F54",plate:"173어8105",region:"",title:"하부소음점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/19",endDate:"",time:"15:00",model:"F56",plate:"126모8980",region:"",title:"엔진오일.차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/19",endDate:"",time:"16:00",model:"F56",plate:"05로0133",region:"",title:"().엔진오일",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/19",endDate:"",time:"16:00",model:"F55",plate:"18저3196",region:"",title:"마운트세트,타이밍체인커버",parts:["마운트세트", "타이밍체인커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/20",endDate:"",time:"10:00",model:"F54",plate:"120가5977",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/20",endDate:"",time:"10:00",model:"F56",plate:"55부9243",region:"",title:"마운트세트3종, 타이밍커버, 워셔액펌프",parts:["마운트세트", "타이밍커버"],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/20",endDate:"",time:"11:00",model:"F56",plate:"13수0345",region:"",title:"차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/20",endDate:"5/21",time:"14:00",model:"R57",plate:"64보4708",region:"",title:"20일 오후탁송진행해야됨 프론트쇼바,쇼바마운트 리어쇼바,부자재,프론트로워암부싱, 링크,부싱,볼조인트",parts:["볼조인트", "쇼바마운트", "링크", "부싱"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/21",endDate:"",time:"10:00",model:"R56",plate:"183더8274",region:"",title:"엔진오일교환, 차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/21",endDate:"",time:"16:00",model:"R57",plate:"33주7796",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -748,7 +750,7 @@ const DEFAULT_JOBS = [
   {date:"5/30",endDate:"",time:"10:00",model:"F60",plate:"170너7835",region:"",title:"엔진오일교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/30",endDate:"",time:"10:00",model:"F54",plate:"17도1493",region:"",title:"마운트세트3종, 타이밍커버",parts:["마운트세트", "타이밍커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/30",endDate:"",time:"13:00",model:"F55",plate:"193너4591",region:"",title:"마운트세트",parts:["마운트세트"],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/30",endDate:"",time:"13:00",model:"F54",plate:"356수7266",region:"",title:"엔진오일교환, 타이밍커버",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/30",endDate:"",time:"13:00",model:"F54",plate:"356수7266",region:"",title:"엔진오일만지참교환, 타이밍커버",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
 ];
 
 window.LS_JOBS    = 'junghbi_jobs';
@@ -870,6 +872,21 @@ function stableKey(ji, pi) {
 function isChecked(ji, pi) { return !!checkedState[stableKey(ji, pi)]; }
 function setChecked(ji, pi, v) { checkedState[stableKey(ji, pi)] = v; saveChecked(); }
 
+// ── Time format ───────────────────────────────────────────
+function formatTime(t) {
+  if (!t || t === '종일') return '<span class="time-ampm">' + (t || '종일') + '</span>';
+  const m = t.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return '<span class="time-ampm">' + t + '</span>';
+  const h = parseInt(m[1]), min = m[2];
+  let ampm, hour;
+  if (h === 0)       { ampm = '오전'; hour = `12:${min}`; }
+  else if (h < 12)   { ampm = '오전'; hour = `${h}:${min}`; }
+  else if (h === 12) { ampm = '오후'; hour = `12:${min}`; }
+  else               { ampm = '오후'; hour = `${h - 12}:${min}`; }
+  const cls = ampm === '오전' ? 'time-am' : 'time-pm';
+  return `<span class="${cls}">${ampm}</span>\n${hour}`;
+}
+
 // ── Sort ─────────────────────────────────────────────────
 function sortKey(j) {
   try {
@@ -891,7 +908,7 @@ function updateClock() {
   const yyyy = now.getFullYear();
   const mo = String(now.getMonth()+1).padStart(2,'0');
   const dd = String(now.getDate()).padStart(2,'0');
-  document.getElementById('clockTime').textContent = `${hh}:${mm}:${ss}`;
+  document.getElementById('clockTime').innerHTML = `${formatTime(`${hh}:${mm}`)}:${ss}`;
   document.getElementById('clockDate').textContent = `${yyyy}.${mo}.${dd} (${DAY_KO[now.getDay()]})`;
   const hdr = document.getElementById('headerMonth');
   if (hdr) hdr.textContent = `${yyyy}년 ${now.getMonth()+1}월`;
@@ -929,7 +946,7 @@ function renderSchedule() {
   container.innerHTML = '';
   const totalVisible = JOBS.filter(j => jobMatchesSearch(j)).length;
   if (searchQuery && totalVisible === 0) {
-    container.innerHTML = '<div class="search-empty">🔍 <b>"' + searchQuery + '"</b> 검색 결과가 없습니다.</div>';
+    container.innerHTML = '<div class="search-empty"><b>"' + searchQuery + '"</b> 검색 결과가 없습니다.</div>';
     return;
   }
   const byDate = {};
@@ -968,8 +985,8 @@ function renderSchedule() {
       card.className = 'job-card'+(job.done?' is-done':'')+(job.cancelled?' is-cancelled':'');
       const endStr = job.endDate ? `<br><span style="font-size:10px;opacity:.5">→${job.endDate}</span>` : '';
       const badge = job.cancelled ? '<span class="status-badge badge-cancel">취소</span>' : job.done ? '<span class="status-badge badge-done">완료</span>' : '';
-      const noteHtml = job.note ? `<div class="job-note">💬 ${highlight(job.note, searchQuery)}</div>` : '';
-      const phoneHtml = job.phone ? `<div class="phone">📞 ${highlight(job.phone, searchQuery)}</div>` : '';
+      const noteHtml = job.note ? `<div class="job-note">${highlight(job.note, searchQuery)}</div>` : '';
+      const phoneHtml = job.phone ? `<div class="phone">${highlight(job.phone, searchQuery)}</div>` : '';
       const vinHtml = job.region ? (() => {
         const v = job.region;
         const prefix = v.length > 7 ? v.slice(0, v.length - 7) : '';
@@ -986,8 +1003,8 @@ function renderSchedule() {
           return `<div>
             <div class="part-row${chk}" id="p-${ji}-${pi}">
               <div class="cb-box" onclick="togglePart(${ji},${pi})">${CHECK_SVG}</div>
-              <span class="part-label" onclick="togglePart(${ji},${pi})">🔩 ${part}</span>
-              <button class="part-memo-btn${hasMemo?' has-memo':''}" id="pmb-${ji}-${pi}" onclick="togglePartMemo(${ji},${pi})" title="메모">📝</button>
+              <span class="part-label" onclick="togglePart(${ji},${pi})">${part}</span>
+              <button class="part-memo-btn${hasMemo?' has-memo':''}" id="pmb-${ji}-${pi}" onclick="togglePartMemo(${ji},${pi})" title="메모">${NOTE_SVG}</button>
             </div>
             <div class="part-memo-wrap${hasMemo?' always':''}" id="pmw-${ji}-${pi}">
               ${hasMemo
@@ -1000,7 +1017,7 @@ function renderSchedule() {
         partsHtml = `<div class="parts-block"><div class="parts-block-label">발주 부품</div>${rows}</div>`;
       }
       card.innerHTML = `${badge}
-        <div class="time-col">${job.time||''}${endStr}</div>
+        <div class="time-col">${formatTime(job.time)}${endStr}</div>
         <div class="job-body">
           <div class="job-top">
             <span class="car-model" style="background:${mc.bg};border-color:${mc.border};color:${mc.text}">${highlight(displayModel(job.model), searchQuery)||''}</span>
@@ -1011,8 +1028,8 @@ function renderSchedule() {
           ${noteHtml}${phoneHtml}${partsHtml}
         </div>
         <div class="card-actions">
-          <button class="btn-icon" onclick="openModal(${ji})">✏️</button>
-          <button class="btn-icon btn-del" onclick="askDelete(${ji})">🗑️</button>
+          <button class="btn-icon" onclick="openModal(${ji})">${PENCIL_SVG}</button>
+          <button class="btn-icon btn-del" onclick="askDelete(${ji})">${TRASH_SVG}</button>
         </div>`;
       section.appendChild(card);
     });
@@ -1121,9 +1138,9 @@ function buildSidePanels() {
       const dayCls = j.days >= 7 ? 'warn' : j.days >= 3 ? 'caution' : 'ok';
       const ddCls  = dLeft !== null ? (dLeft <= 1 ? 'warn' : dLeft <= 3 ? 'caution' : 'ok') : 'ok';
       const ddLabel = dLeft === null ? '' : dLeft > 0 ? `D-${dLeft} 출고예정` : dLeft === 0 ? 'D-Day 출고' : '출고일 경과';
-      const phoneRow = j.phone ? `<div class="long-card-expand-row">📞 <b>연락처</b> ${j.phone}</div>` : '';
-      const vinRow   = j.region? `<div class="long-card-expand-row">🔖 <b>차대번호</b> ${j.region}</div>` : '';
-      const noteRow  = j.note  ? `<div class="long-card-expand-row">💬 <b>메모</b> ${j.note}</div>` : '';
+      const phoneRow = j.phone ? `<div class="long-card-expand-row"><b>연락처</b> ${j.phone}</div>` : '';
+      const vinRow   = j.region? `<div class="long-card-expand-row"><b>차대번호</b> ${j.region}</div>` : '';
+      const noteRow  = j.note  ? `<div class="long-card-expand-row"><b>메모</b> ${j.note}</div>` : '';
       const partsRow = ''; // 발주부품 사이드바 미표시
       return `<div class="long-card" id="lc-${idx}" onclick="toggleLongCard(${idx})">
         <div class="long-card-top">
@@ -1137,8 +1154,8 @@ function buildSidePanels() {
           </div>
         </div>
         <div class="long-card-title">${j.title||''}</div>
-        <div class="long-card-dates">📅 ${j.date} → ${j.endDate}</div>
-        ${ddLabel ? `<div class="long-card-dday ${ddCls}">⏱ ${ddLabel}</div>` : ''}
+        <div class="long-card-dates">${j.date} → ${j.endDate}</div>
+        ${ddLabel ? `<div class="long-card-dday ${ddCls}">${ddLabel}</div>` : ''}
         <div class="long-card-expand" id="lce-${idx}">
           ${noteRow}${phoneRow}${vinRow}${partsRow}
         </div>
@@ -1344,7 +1361,7 @@ function loadICSFile(input) {
     try { localStorage.setItem('jungbi_last_updated', ts); } catch(e) {}
     if (SB_READY) sbSet('jungbi_last_updated', ts);
     showLastUpdated(ts);
-    alert('✅ ' + jobs.length + '개 일정 갱신 완료!');
+    alert(jobs.length + '개 일정 갱신 완료!');
   };
   reader.readAsText(file, 'utf-8');
   input.value = '';
@@ -1505,13 +1522,13 @@ async function manualRefresh() {
 function toggleTheme() {
   const isLight = document.documentElement.classList.toggle('light');
   try{localStorage.setItem('jungbi_theme', isLight?'light':'dark');}catch(e){}
-  document.getElementById('themeBtn').textContent = isLight ? '🌙' : '☀️';
+  document.getElementById('themeBtn').innerHTML = isLight ? MOON_SVG : SUN_SVG;
 }
 function initTheme() {
   var saved = ''; try{saved=localStorage.getItem('jungbi_theme')||'';}catch(e){}
   const isLight = saved === 'light';
   if(isLight) document.documentElement.classList.add('light');
-  document.getElementById('themeBtn').textContent = isLight ? '🌙' : '☀️';
+  document.getElementById('themeBtn').innerHTML = isLight ? MOON_SVG : SUN_SVG;
 }
 
 // ── Init ──────────────────────────────────────────────────
@@ -1590,7 +1607,7 @@ showLastUpdated();
     }
 
     SB_READY = true;
-    console.log('✅ Supabase 데이터 로드 완료');
+    console.log('Supabase 데이터 로드 완료');
   } catch(e) {
     SB_READY = true;
     console.warn('Supabase 로드 실패, localStorage 사용:', e);
