@@ -1227,6 +1227,81 @@ async function mergeAndUpdate(newJobs) {
     sbSet('jungbi_checked', checkedState);
     sbSet('jungbi_pmemo', partMemos);
   }
+
+  // ── ICS 갱신 후 현재 JOBS에 없는 partMemos 정리 ──────────────
+  const validMemoKeys = new Set();
+  JOBS.forEach(j => {
+    if (j.parts && j.parts.length > 0) {
+      j.parts.forEach(part => {
+        validMemoKeys.add(`${j.plate||''}|${j.date||''}|${part}`);
+      });
+    }
+  });
+
+  let memosCleaned = false;
+  Object.keys(partMemos).forEach(k => {
+    if (k.includes('|') && !validMemoKeys.has(k)) {
+      delete partMemos[k];
+      memosCleaned = true;
+    }
+  });
+
+  if (memosCleaned) {
+    try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
+    sbSet('jungbi_pmemo', partMemos);
+    console.log('✅ 유효하지 않은 partMemos 정리 완료. 남은 키:', Object.keys(partMemos).length);
+  }
+
+  // ── ICS 갱신 후 partMemos 정리 ────────────────────────────────────────
+  // ICS 날짜 범위 기준: 가장 빠른 날짜 -7일 ~ 가장 늦은 날짜 +7일 사이만 보존
+  try {
+    const jobDates = JOBS.map(j => {
+      const parts = (j.date || '').split('/');
+      if (parts.length === 2) {
+        const now = new Date();
+        return new Date(now.getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1]));
+      }
+      return null;
+    }).filter(Boolean);
+
+    if (jobDates.length > 0) {
+      const minJobDate = new Date(Math.min(...jobDates.map(d => d.getTime())));
+      const maxJobDate = new Date(Math.max(...jobDates.map(d => d.getTime())));
+
+      const cutoffStart = new Date(minJobDate);
+      cutoffStart.setDate(cutoffStart.getDate() - 7);
+
+      const cutoffEnd = new Date(maxJobDate);
+      cutoffEnd.setDate(cutoffEnd.getDate() + 7);
+
+      let memosCleaned2 = false;
+      Object.keys(partMemos).forEach(k => {
+        if (!k.includes('|')) return;
+        const datePart = k.split('|')[1] || '';
+        const dp = datePart.split('/');
+        if (dp.length !== 2) return;
+        const now = new Date();
+        const memoDate = new Date(now.getFullYear(), parseInt(dp[0]) - 1, parseInt(dp[1]));
+        if (memoDate < cutoffStart || memoDate > cutoffEnd) {
+          delete partMemos[k];
+          memosCleaned2 = true;
+        }
+      });
+
+      if (memosCleaned2) {
+        try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
+        sbSet('jungbi_pmemo', partMemos);
+        console.log(
+          '✅ partMemos 정리 완료.',
+          '보존 범위:', cutoffStart.toLocaleDateString(), '~', cutoffEnd.toLocaleDateString(),
+          '/ 남은 키:', Object.keys(partMemos).length
+        );
+      }
+    }
+  } catch(e) {
+    console.warn('partMemos 정리 중 오류:', e);
+  }
+
   renderSchedule();
 }
 
