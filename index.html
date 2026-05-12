@@ -549,6 +549,7 @@
 
 
 <script>
+const ALERT_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#cf222e" style="vertical-align:-3px;margin-right:4px;flex-shrink:0;"><path d="M13 17.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-.25-8.25a.75.75 0 0 0-1.5 0v4.5a.75.75 0 0 0 1.5 0v-4.5Z"></path><path d="M9.836 3.244c.963-1.665 3.365-1.665 4.328 0l8.967 15.504c.963 1.667-.24 3.752-2.165 3.752H3.034c-1.926 0-3.128-2.085-2.165-3.752Zm3.03.751a1.002 1.002 0 0 0-1.732 0L2.168 19.499A1.002 1.002 0 0 0 3.034 21h17.932a1.002 1.002 0 0 0 .866-1.5L12.866 3.994Z"></path></svg>`;
 const CHECK_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M21.03 5.72a.75.75 0 0 1 0 1.06l-11.5 11.5a.747.747 0 0 1-1.072-.012l-5.5-5.75a.75.75 0 1 1 1.084-1.036l4.97 5.195L19.97 5.72a.75.75 0 0 1 1.06 0Z"></path></svg>`;
 const PENCIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.263 2.177a1.75 1.75 0 0 1 2.474 0l2.586 2.586a1.75 1.75 0 0 1 0 2.474L19.53 10.03l-.012.013L8.69 20.378a1.753 1.753 0 0 1-.699.409l-5.523 1.68a.748.748 0 0 1-.747-.188.748.748 0 0 1-.188-.747l1.673-5.5a1.75 1.75 0 0 1 .466-.756L14.476 4.963ZM4.708 16.361a.26.26 0 0 0-.067.108l-1.264 4.154 4.177-1.271a.253.253 0 0 0 .1-.059l10.273-9.806-2.94-2.939-10.279 9.813ZM19 8.44l2.263-2.262a.25.25 0 0 0 0-.354l-2.586-2.586a.25.25 0 0 0-.354 0L16.061 5.5Z"></path></svg>`;
 const TRASH_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1.75V3h5.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H8V1.75C8 .784 8.784 0 9.75 0h4.5C15.216 0 16 .784 16 1.75Zm-6.5 0V3h5V1.75a.25.25 0 0 0-.25-.25h-4.5a.25.25 0 0 0-.25.25ZM4.997 6.178a.75.75 0 1 0-1.493.144L4.916 20.92a1.75 1.75 0 0 0 1.742 1.58h10.684a1.75 1.75 0 0 0 1.742-1.581l1.413-14.597a.75.75 0 0 0-1.494-.144l-1.412 14.596a.25.25 0 0 1-.249.226H6.658a.25.25 0 0 1-.249-.226L4.997 6.178Z"></path><path d="M9.206 7.501a.75.75 0 0 1 .793.705l.5 8.5A.75.75 0 1 1 9 16.794l-.5-8.5a.75.75 0 0 1 .705-.793Zm6.293.793A.75.75 0 1 0 14 8.206l-.5 8.5a.75.75 0 0 0 1.498.088l.5-8.5Z"></path></svg>`;
@@ -975,13 +976,16 @@ function renderSchedule() {
       const badge = job.cancelled ? '<span class="status-badge badge-cancel">취소</span>' : job.done ? '<span class="status-badge badge-done">완료</span>' : '';
       const noteHtml = job.note ? `<div class="job-note">${highlight(job.note, searchQuery)}</div>` : '';
       const phoneHtml = job.phone ? `<div class="phone">${highlight(job.phone, searchQuery)}</div>` : '';
+      const mc = getModelColor(job.model);
+      const _isUnknownModel = !job.model || job.model.trim() === ''
+        || mc.border === 'rgba(79,127,255,0.35)';
+      const alertIcon = _isUnknownModel ? ALERT_SVG : '';
       const vinHtml = job.region ? (() => {
         const v = job.region;
         const prefix = v.length > 7 ? v.slice(0, v.length - 7) : '';
         const suffix = v.length > 7 ? v.slice(-7) : v;
         return `<span class="vin">${prefix}<span class="vin-highlight">${suffix}</span></span>`;
       })() : '';
-      const mc = getModelColor(job.model);
       let partsHtml = '';
       if (job.parts && job.parts.length > 0) {
         const rows = job.parts.map((part,pi) => {
@@ -1008,7 +1012,7 @@ function renderSchedule() {
         <div class="time-col">${formatTime(job.time)}${endStr}</div>
         <div class="job-body">
           <div class="job-top">
-            <span class="car-model" style="background:${mc.bg};border-color:${mc.border};color:${mc.text}">${highlight(displayModel(job.model), searchQuery)||''}</span>
+            ${alertIcon}<span class="car-model" style="background:${mc.bg};border-color:${mc.border};color:${mc.text}">${highlight(displayModel(job.model), searchQuery)||''}</span>
             <span class="plate">${highlight(job.plate, searchQuery)||''}</span>
             ${vinHtml}
           </div>
