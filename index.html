@@ -47,11 +47,6 @@
   .btn-theme{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:var(--text);}
   .btn-theme svg{width:18px;height:18px;}
   .btn-theme:hover{border-color:var(--accent);}
-  .btn-refresh{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;padding:0;}
-  .btn-refresh:hover{border-color:var(--green);}
-  .btn-refresh svg{width:18px;height:18px;transition:transform 0.6s ease;}
-  .btn-refresh.spinning svg{animation:spin 0.8s linear infinite;}
-  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
   .btn-parts-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:0 11px;height:36px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
   .btn-parts-toggle:hover{border-color:var(--accent2);color:var(--accent2);}
   .btn-parts-toggle.active{background:var(--accent2);border-color:var(--accent2);color:white;}
@@ -284,8 +279,6 @@
     .header-right{display:contents;}
     .header-right .clock-block{display:none;}
     .btn-theme{width:28px;height:28px;font-size:13px;border-radius:6px;}
-    .btn-refresh{width:28px;height:28px;border-radius:6px;}
-    .btn-refresh svg{width:14px;height:14px;}
     .btn-add{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
     .btn-ics{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
     .btn-parts-toggle{font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;}
@@ -409,9 +402,6 @@
     <button class="btn-ics" onclick="document.getElementById('icsFileInput').click()" title="ICS 파일로 일정 갱신">ICS 갱신</button>
     <input type="file" id="icsFileInput" accept=".ics" style="display:none" onchange="loadICSFile(this)">
     <button class="btn-parts-toggle" id="partsToggleBtn" onclick="togglePartsOnly()" title="발주부품 있는 카드만 보기">발주부품</button>
-    <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="수동 새로고침">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.38 8A9.502 9.502 0 0 1 12 2.5a9.502 9.502 0 0 1 9.215 7.182.75.75 0 1 0 1.456-.364C21.473 4.539 17.15 1 12 1a10.995 10.995 0 0 0-9.5 5.452V4.75a.75.75 0 0 0-1.5 0V8.5a1 1 0 0 0 1 1h3.75a.75.75 0 0 0 0-1.5H3.38Zm-.595 6.318a.75.75 0 0 0-1.455.364C2.527 19.461 6.85 23 12 23c4.052 0 7.592-2.191 9.5-5.451v1.701a.75.75 0 0 0 1.5 0V15.5a1 1 0 0 0-1-1h-3.75a.75.75 0 0 0 0 1.5h2.37A9.502 9.502 0 0 1 12 21.5c-4.446 0-8.181-3.055-9.215-7.182Z"></path></svg>
-    </button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14.768 3.96v.001l-.002-.005a9.08 9.08 0 0 0-.218-.779c-.13-.394.21-.8.602-.67.29.096.575.205.855.328l.01.005A10.002 10.002 0 0 1 12 22a10.002 10.002 0 0 1-9.162-5.985l-.004-.01a9.722 9.722 0 0 1-.329-.855c-.13-.392.277-.732.67-.602.257.084.517.157.78.218l.004.002A9 9 0 0 0 14.999 6a9.09 9.09 0 0 0-.231-2.04ZM16.5 6c0 5.799-4.701 10.5-10.5 10.5-.426 0-.847-.026-1.26-.075A8.5 8.5 0 1 0 16.425 4.74c.05.413.075.833.075 1.259Z"></path></svg></button>
     <button class="btn-add" onclick="openModal()">＋ 일정 추가</button>
   </div>
@@ -1539,53 +1529,6 @@ function closeConfirm() { document.getElementById('confirmOverlay').classList.re
 function confirmDelete() { if(deletingIndex===null) return; JOBS.splice(deletingIndex,1); saveJobs(); closeConfirm(); renderSchedule(); }
 
 // ── Theme ─────────────────────────────────────────────────
-async function manualRefresh() {
-  const btn = document.getElementById('refreshBtn');
-  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
-  try {
-    const [sbJobs, sbChecked, sbMemos] = await Promise.all([
-      sbGet('jungbi_jobs'),
-      sbGet('jungbi_checked'),
-      sbGet('jungbi_pmemo'),
-    ]);
-    let changed = false;
-    if (sbChecked && JSON.stringify(sbChecked) !== JSON.stringify(checkedState)) {
-      checkedState = sbChecked;
-      try { localStorage.setItem(LS_CHECKED, JSON.stringify(checkedState)); } catch(e) {}
-      changed = true;
-    }
-    if (sbMemos && JSON.stringify(sbMemos) !== JSON.stringify(partMemos)) {
-      partMemos = sbMemos;
-      try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
-      changed = true;
-    }
-    if (sbJobs) {
-      function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
-      const sbMap = {};
-      sbJobs.forEach(j => { sbMap[jobKey(j)] = j; });
-      const merged = DEFAULT_JOBS.map(dj => {
-        const sb = sbMap[jobKey(dj)];
-        if (!sb) return dj;
-        return { ...dj, done: sb.done, cancelled: sb.cancelled,
-          note: sb.note !== undefined && sb.note !== '' ? sb.note : dj.note,
-          region: sb.region !== undefined && sb.region !== '' ? sb.region : dj.region,
-          parts: sb.parts !== undefined ? sb.parts : dj.parts };
-      });
-      if (JSON.stringify(merged) !== JSON.stringify(JOBS)) {
-        JOBS = merged;
-        try { localStorage.setItem(LS_JOBS, JSON.stringify(JOBS)); } catch(e) {}
-        changed = true;
-      }
-    }
-    if (changed) renderSchedule();
-  } catch(e) {}
-  finally {
-    setTimeout(() => {
-      if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
-    }, 800);
-  }
-}
-
 function toggleTheme() {
   const isLight = document.documentElement.classList.toggle('light');
   try{localStorage.setItem('jungbi_theme', isLight?'light':'dark');}catch(e){}
