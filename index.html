@@ -598,7 +598,7 @@ const DEFAULT_JOBS = [
   {date:"5/14",endDate:"",time:"11:00",model:"R60d",plate:"22주0970",region:"",title:"().엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"13:00",model:"F56",plate:"346너7669",region:"",title:"엔진오일교환, 과열경고등,냉각수 누수점검 - 급한일로일단취소",parts:[],phone:"",note:"",done:true,cancelled:true},
   {date:"5/14",endDate:"",time:"13:00",model:"F54",plate:"04모2307",region:"",title:"().RH.범퍼등점검후교환.시거잭점검",parts:[],phone:"",note:"",done:false,cancelled:false},
-  {date:"5/14",endDate:"",time:"13:00",model:"R56",plate:"26부8826",region:"",title:"로워암부싱,Fr.활대링크,활대부싱,볼조인트교환,엔진오일교환.차량점검[내용확인]",parts:["볼조인트", "링크", "부싱"],phone:"",note:"-트렁크 손잡이 점검 (고무찢겼다함) -운전석 등받이 유격 -보증수리 확인 : 헤드커버 누유로 보증수리 받음 -범퍼하단 조수석 혓바닥 점검 -미션오일 점검",done:false,cancelled:false},
+  {date:"5/14",endDate:"",time:"13:00",model:"R56",plate:"26부8826",region:"",title:"로워암부싱,Fr.활대링크,활대부싱,볼조인트교환,엔진오일교환.차량점검,전구류점검, [내용확인]",parts:["볼조인트", "링크", "부싱"],phone:"",note:"-트렁크 손잡이 점검 (고무찢겼다함) -운전석 등받이 유격 -보증수리 확인 : 헤드커버 누유로 보증수리 받음 -범퍼하단 조수석 혓바닥 점검 -미션오일 점검",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"14:00",model:"F60",plate:"240다5765",region:"",title:"밋션오일 교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"14:00",model:"R60d",plate:"13소0158",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/14",endDate:"",time:"15:00",model:"F56",plate:"53마0391",region:"",title:"소견내용점검",parts:[],phone:"",note:"",done:false,cancelled:false},
@@ -665,6 +665,7 @@ const DEFAULT_JOBS = [
   {date:"5/18",endDate:"",time:"15:00",model:"F55",plate:"17마7943",region:"",title:"누수점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"16:00",model:"F55",plate:"12소5248",region:"",title:"타이밍커버 누유점검후 a/s상담",parts:["타이밍커버"],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"16:00",model:"F54d",plate:"33누9893",region:"",title:"좌측 브레이크등결함",parts:[],phone:"",note:"",done:false,cancelled:false},
+  {date:"5/18",endDate:"",time:"16:00",model:"F60",plate:"01마7502",region:"",title:"엔진오일,차량점검",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/18",endDate:"",time:"17:00",model:"F55",plate:"106머4782",region:"",title:"엔진오일교환, 에어컨필터 010 2 18 0745",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/19",endDate:"",time:"10:00",model:"F60d",plate:"27두8304",region:"",title:"브레이크액 점검후교환",parts:[],phone:"",note:"",done:false,cancelled:false},
   {date:"5/19",endDate:"",time:"10:00",model:"F56",plate:"388라8553",region:"",title:"워터펌프어셈블리",parts:["워터펌프어셈블리"],phone:"",note:"",done:false,cancelled:false},
@@ -778,9 +779,27 @@ async function sbSet(id, data) {
 }
 
 // ── localStorage 폴백 포함 저장/로드 ────────────────────────────────────
+function _jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
+
 function loadJobs() {
-  try { var s = localStorage.getItem(LS_JOBS); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_JOBS)); }
-  catch(e) { return JSON.parse(JSON.stringify(DEFAULT_JOBS)); }
+  try {
+    var s = localStorage.getItem(LS_JOBS);
+    if (!s) return JSON.parse(JSON.stringify(DEFAULT_JOBS));
+    var stored = JSON.parse(s);
+    var storedMap = {};
+    stored.forEach(function(j) { storedMap[_jobKey(j)] = j; });
+    return DEFAULT_JOBS.map(function(dj) {
+      var old = storedMap[_jobKey(dj)];
+      if (!old) return dj;
+      return Object.assign({}, dj, {
+        done:      dj.done || old.done,
+        cancelled: dj.cancelled || old.cancelled,
+        note:      old.note !== undefined && old.note !== '' ? old.note : dj.note,
+        region:    old.region !== undefined && old.region !== '' ? old.region : dj.region,
+        parts:     old.parts !== undefined ? old.parts : dj.parts,
+      });
+    });
+  } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_JOBS)); }
 }
 function saveJobs() {
   try { localStorage.setItem(LS_JOBS, JSON.stringify(JOBS)); } catch(e) {}
@@ -1185,7 +1204,7 @@ function showLastUpdated(ts) {
 }
 
 async function mergeAndUpdate(newJobs) {
-  function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
+  const jobKey = _jobKey;
 
   // Supabase에서 최신 데이터 먼저 가져옴 (다른 기기 수정사항 포함)
   let baseJobs = JOBS;
@@ -1198,8 +1217,8 @@ async function mergeAndUpdate(newJobs) {
       sbGet('jungbi_pmemo'),
     ]);
     if (sbJobs && sbJobs.length > 0) baseJobs = sbJobs;
-    if (sbChecked) baseChecked = sbChecked;
-    if (sbMemos && Object.keys(sbMemos).length > 0) baseMemos = sbMemos;
+    if (sbChecked) baseChecked = Object.assign({}, checkedState, sbChecked);
+    if (sbMemos) baseMemos = Object.assign({}, partMemos, sbMemos);
   } catch(e) {}
 
   // 최신 Supabase 데이터 기준으로 체크 반영
@@ -1214,8 +1233,11 @@ async function mergeAndUpdate(newJobs) {
     if (!old) return nj;
     return {
       ...nj,
-      done:      old.done,
-      cancelled: old.cancelled,
+      // ICS의 done(X-NAVER-COMPLETED)이 true면 우선 적용
+      // DB의 done이 true면 그것도 유지 (수동 완료 처리 보존)
+      done:      nj.done || old.done,
+      // ICS의 cancelled('취소' 포함) 또는 DB의 cancelled 중 하나라도 true면 유지
+      cancelled: nj.cancelled || old.cancelled,
       note:      old.note !== undefined && old.note !== '' ? old.note : nj.note,
       region:    old.region !== undefined && old.region !== '' ? old.region : nj.region,
       parts:     old.parts !== undefined ? old.parts : nj.parts,
@@ -1376,6 +1398,13 @@ function extractParts(title) {
     }
   }
   return found;
+}
+
+function filterBlacklistFromParts(parts) {
+  if (!Array.isArray(parts)) return parts;
+  return parts.filter(p => !PART_BLACKLIST.some(bl =>
+    bl.toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes(bl.toLowerCase())
+  ));
 }
 
 // 갱신 시간 초기화
@@ -1574,7 +1603,7 @@ showLastUpdated();
     ]);
 
     if (sbJobs) {
-      function jobKey(j) { return (j.date||'')+'|'+(j.time||'')+'|'+(j.plate||'')+'|'+(j.model||''); }
+      const jobKey = _jobKey;
       const sbMap = {};
       sbJobs.forEach(j => { sbMap[jobKey(j)] = j; });
       // 새 ICS(DEFAULT_JOBS) 우선, 사용자 편집값(done/cancelled/note/region/parts)은 Supabase 우선
@@ -1583,22 +1612,24 @@ showLastUpdated();
         if (!sb) return dj;
         return {
           ...dj,
-          done:      sb.done,
-          cancelled: sb.cancelled,
+          // ICS의 done(X-NAVER-COMPLETED) 또는 DB의 done 중 하나라도 true면 유지
+          done:      dj.done || sb.done,
+          // ICS의 cancelled('취소') 또는 DB의 cancelled 중 하나라도 true면 유지
+          cancelled: dj.cancelled || sb.cancelled,
           note:      sb.note !== undefined && sb.note !== '' ? sb.note : dj.note,
           region:    sb.region !== undefined && sb.region !== '' ? sb.region : dj.region,
-          parts:     sb.parts !== undefined ? sb.parts : dj.parts,
+          parts:     sb.parts !== undefined ? filterBlacklistFromParts(sb.parts) : dj.parts,
         };
       });
       JOBS = merged;
       try { localStorage.setItem(LS_JOBS, JSON.stringify(JOBS)); } catch(e) {}
     }
-    if (sbChecked && JSON.stringify(sbChecked) !== JSON.stringify(checkedState)) {
-      checkedState = sbChecked;
+    if (sbChecked) {
+      checkedState = Object.assign({}, checkedState, sbChecked);
       try { localStorage.setItem(LS_CHECKED, JSON.stringify(checkedState)); } catch(e) {}
     }
-    if (sbMemos && JSON.stringify(sbMemos) !== JSON.stringify(partMemos)) {
-      partMemos = sbMemos;
+    if (sbMemos) {
+      partMemos = Object.assign({}, partMemos, sbMemos);
       try { localStorage.setItem(LS_PMEMO, JSON.stringify(partMemos)); } catch(e) {}
     }
 
