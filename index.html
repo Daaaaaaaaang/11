@@ -868,7 +868,14 @@ function highlight(text, query) {
 function jobMatchesSearch(job) {
   if (!searchQuery) return true;
   const fields = [job.plate, job.model, job.title, job.phone, job.note, job.region];
-  return fields.some(f => f && String(f).toLowerCase().includes(searchQuery));
+  if (fields.some(f => f && String(f).toLowerCase().includes(searchQuery))) return true;
+  if (job.parts && job.parts.length > 0) {
+    return job.parts.some(part => {
+      const memo = partMemos[`${job.plate||''}|${job.date||''}|${part}`];
+      return memo && memo.toLowerCase().includes(searchQuery);
+    });
+  }
+  return false;
 }
 
 // ── Checked helpers ───────────────────────────────────────
